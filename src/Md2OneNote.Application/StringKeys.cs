@@ -62,7 +62,12 @@ namespace Md2OneNote.Application
             { StringKeys.FailurePageTooLarge, "The generated page is larger than the {0} byte limit and was not created." },
 
             { StringKeys.SkippedUnchanged, "Unchanged since the last import." },
-            { StringKeys.UntitledDocument, "Untitled" }
+            { StringKeys.UntitledDocument, "Untitled" },
+
+            // Emitted by Core, into page content and conversion diagnostics.
+            { CoreStringKeys.FootnotesHeading, "Notes" },
+            { CoreStringKeys.ImageUnavailable, "[Image unavailable: {0} — {1}]" },
+            { CoreStringKeys.HtmlBlockDropped, "Embedded HTML on line {0} was removed for safety." }
         };
 
         public static FallbackStringCatalog Instance { get; } = new FallbackStringCatalog();
