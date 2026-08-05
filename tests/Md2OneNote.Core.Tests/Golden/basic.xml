@@ -1,0 +1,79 @@
+<one:Page xmlns:one="http://schemas.microsoft.com/office/onenote/2013/onenote">
+  <one:QuickStyleDef index="0" name="PageTitle" font="Calibri Light" fontSize="20" fontColor="#1F497D" />
+  <one:QuickStyleDef index="1" name="h1" font="Calibri Light" fontSize="16" fontColor="#1E4E79" />
+  <one:QuickStyleDef index="2" name="h2" font="Calibri Light" fontSize="14" fontColor="#2E74B5" />
+  <one:QuickStyleDef index="3" name="h3" font="Calibri Light" fontSize="12" fontColor="#5B9BD5" />
+  <one:QuickStyleDef index="4" name="h4" font="Calibri Light" fontSize="11" fontColor="#2E74B5" italic="true" />
+  <one:QuickStyleDef index="5" name="h5" font="Calibri Light" fontSize="11" fontColor="#5B9BD5" />
+  <one:QuickStyleDef index="6" name="h6" font="Calibri Light" fontSize="11" fontColor="#808080" italic="true" />
+  <one:QuickStyleDef index="7" name="p" font="Calibri" fontSize="11" fontColor="automatic" />
+  <one:QuickStyleDef index="8" name="blockquote" font="Calibri" fontSize="11" fontColor="#595959" italic="true" />
+  <one:QuickStyleDef index="9" name="code" font="Consolas" fontSize="9" fontColor="#000000" />
+  <one:QuickStyleDef index="10" name="cite" font="Calibri" fontSize="9" fontColor="#808080" />
+  <one:TagDef index="0" type="3" symbol="3" name="To Do" fontColor="automatic" highlightColor="none" />
+  <one:Meta name="Md2OneNote.Source" content="C:\notes\test.md" />
+  <one:Meta name="Md2OneNote.Hash" content="sha256:4d4823794cbed3c4ee0bbc684c8f66e1dfd5afa6f078d494ce254ec5a4671753" />
+  <one:Meta name="Md2OneNote.Version" content="1.0.0-test" />
+  <one:Meta name="Md2OneNote.Imported" content="2026-08-04T09:30:00Z" />
+  <one:Title>
+    <one:OE quickStyleIndex="0">
+      <one:T><![CDATA[Basic Document]]></one:T>
+    </one:OE>
+  </one:Title>
+  <one:Outline>
+    <one:Position x="36" y="86" z="0" />
+    <one:Size width="700" height="100" />
+    <one:OEChildren>
+      <one:OE quickStyleIndex="1">
+        <one:T><![CDATA[A Heading That Is Not The Title]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[A paragraph with <span style='font-weight:bold'>bold</span>, <span style='font-style:italic'>italic</span>, <span style='text-decoration:line-through'>struck</span> and <span style='font-family:Consolas;background-color:#F2F2F2'>inline code</span>. It also has a <a href="https://example.com/docs?a=1&amp;b=2">live link</a>, a local link and an autolink to <a href="https://example.org">https://example.org</a>.]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="2">
+        <one:T><![CDATA[Second Level]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="8">
+        <one:T><![CDATA[A quotation, which OneNote shows in its own style. It runs across two source lines.]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="3">
+        <one:T><![CDATA[Third Level]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[A line ending with two spaces<br/>forces a break.]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[Some raw HTML follows and must not survive:]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[Inline &lt;sup&gt;markup&lt;/sup&gt; is kept as text instead.]]></one:T>
+      </one:OE>
+      <one:Table bordersVisible="false">
+        <one:Columns>
+          <one:Column index="0" width="660" />
+        </one:Columns>
+        <one:Row>
+          <one:Cell shadingColor="#BFBFBF">
+            <one:OEChildren>
+              <one:OE quickStyleIndex="10">
+                <one:T><![CDATA[]]></one:T>
+              </one:OE>
+            </one:OEChildren>
+          </one:Cell>
+        </one:Row>
+      </one:Table>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[A claim that needs a source[1], and another[2].]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="2">
+        <one:T><![CDATA[NOTES]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="10">
+        <one:T><![CDATA[[1] The first note.]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="10">
+        <one:T><![CDATA[[2] The second note.]]></one:T>
+      </one:OE>
+    </one:OEChildren>
+  </one:Outline>
+</one:Page>

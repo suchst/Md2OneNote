@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>7.3</LangVersion>
-    <RootNamespace>Md2OneNote.Application.Tests</RootNamespace>
-    <AssemblyName>Md2OneNote.Application.Tests</AssemblyName>
+    <RootNamespace>Md2OneNote.Core.Tests</RootNamespace>
+    <AssemblyName>Md2OneNote.Core.Tests</AssemblyName>
     <IsPackable>false</IsPackable>
     <!-- Markdig pulls System.Memory, which the net48 test host resolves to a different
          version than the one restored here. Redirects are a test-host concern only. -->
@@ -19,8 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Md2OneNote.Application\Md2OneNote.Application.csproj" />
     <ProjectReference Include="..\..\src\Md2OneNote.Core\Md2OneNote.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Golden\**\*" />
+    <None Include="Samples\**\*" />
   </ItemGroup>
 
 </Project>
