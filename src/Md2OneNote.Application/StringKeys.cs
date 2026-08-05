@@ -67,7 +67,17 @@ namespace Md2OneNote.Application
             // Emitted by Core, into page content and conversion diagnostics.
             { CoreStringKeys.FootnotesHeading, "Notes" },
             { CoreStringKeys.ImageUnavailable, "[Image unavailable: {0} — {1}]" },
-            { CoreStringKeys.HtmlBlockDropped, "Embedded HTML on line {0} was removed for safety." }
+            { CoreStringKeys.HtmlBlockDropped, "Embedded HTML on line {0} was removed for safety." },
+            { CoreStringKeys.NestingTooDeep, "Content nested more than {0} levels deep was not converted." },
+
+            { CoreStringKeys.AssetInvalidPath, "'{0}' is not a usable file path." },
+            { CoreStringKeys.AssetRemoteUrl, "'{0}' is a web address; only local images are embedded." },
+            { CoreStringKeys.AssetAbsolutePath, "'{0}' is an absolute path and was not embedded." },
+            { CoreStringKeys.AssetNetworkPath, "'{0}' is a network path and was not embedded." },
+            { CoreStringKeys.AssetUnsupportedType, "'{0}' is not a supported image type." },
+            { CoreStringKeys.AssetOutsideDocument, "'{0}' is outside the document's folder." },
+            { CoreStringKeys.AssetTooLarge, "'{0}' is larger than the {1} byte limit." },
+            { CoreStringKeys.AssetNotAnImage, "'{0}' is not a readable image." }
         };
 
         public static FallbackStringCatalog Instance { get; } = new FallbackStringCatalog();

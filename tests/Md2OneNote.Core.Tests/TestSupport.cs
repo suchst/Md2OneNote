@@ -17,7 +17,19 @@ namespace Md2OneNote.Core.Tests
         {
             { CoreStringKeys.FootnotesHeading, "NOTES" },
             { CoreStringKeys.ImageUnavailable, "[unavailable: {0} / {1}]" },
-            { CoreStringKeys.HtmlBlockDropped, "html removed at line {0}" }
+            { CoreStringKeys.HtmlBlockDropped, "html removed at line {0}" },
+            { CoreStringKeys.NestingTooDeep, "nesting past {0} levels dropped" },
+
+            // Deliberately terse, and every one names the reference: a user has to be able to tell
+            // which line of their document a refusal is about.
+            { CoreStringKeys.AssetInvalidPath, "invalid path: {0}" },
+            { CoreStringKeys.AssetRemoteUrl, "remote url: {0}" },
+            { CoreStringKeys.AssetAbsolutePath, "absolute path: {0}" },
+            { CoreStringKeys.AssetNetworkPath, "network path: {0}" },
+            { CoreStringKeys.AssetUnsupportedType, "unsupported type: {0}" },
+            { CoreStringKeys.AssetOutsideDocument, "outside document: {0}" },
+            { CoreStringKeys.AssetTooLarge, "too large: {0} / {1}" },
+            { CoreStringKeys.AssetNotAnImage, "not an image: {0}" }
         };
 
         public static TestCatalog Instance { get; } = new TestCatalog();

@@ -22,6 +22,21 @@ namespace Md2OneNote.Core
 
         /// <summary>Warning raised when content nested past the depth limit. Takes the limit as {0}.</summary>
         public const string NestingTooDeep = "Core.NestingTooDeep";
+
+        // Reasons a referenced image was refused or questioned. Each takes the path as written
+        // as {0}, so the user can see which reference in their document is the problem.
+        public const string AssetInvalidPath = "Core.AssetInvalidPath";
+        public const string AssetRemoteUrl = "Core.AssetRemoteUrl";
+        public const string AssetAbsolutePath = "Core.AssetAbsolutePath";
+        public const string AssetNetworkPath = "Core.AssetNetworkPath";
+        public const string AssetUnsupportedType = "Core.AssetUnsupportedType";
+        public const string AssetOutsideDocument = "Core.AssetOutsideDocument";
+
+        /// <summary>Takes the path as {0} and the byte limit as {1}.</summary>
+        public const string AssetTooLarge = "Core.AssetTooLarge";
+
+        /// <summary>The file exists but its content is not an image we recognize.</summary>
+        public const string AssetNotAnImage = "Core.AssetNotAnImage";
     }
 
     /// <summary>
