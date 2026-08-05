@@ -48,10 +48,17 @@ graph TD
         REND["OneNoteXmlRenderer"]
         SAN["HtmlPolicy / InlineWriter"]
         POL["AssetPathPolicy"]
+        LOAD["AssetLoader"]
     end
 
     subgraph INTEROP["Md2OneNote.Interop"]
         GW["OneNoteGateway<br/>+ retry policy"]
+    end
+
+    subgraph STORE["Md2OneNote.Storage — the filesystem"]
+        SRC["SourceFileReader"]
+        FB["FileBytes"]
+        PIDX["PageIndex"]
     end
 
     subgraph DIAG["Md2OneNote.Diagrams.WebView2"]
@@ -66,6 +73,10 @@ graph TD
     SVC --> DEC --> IDX
     SVC --> GW
     SVC --> WVR
+    SVC --> SRC
+    IDX -.implemented by.-> PIDX
+    LOAD --> POL
+    LOAD --> FB
     PARSE --> MODEL --> REND
     REND --> SAN
     WVR --> SHELL
@@ -80,6 +91,7 @@ graph TD
 | `Md2OneNote.Core` | Markdown → OneNote XML. Deterministic, side-effect free, no I/O, no COM, no UI. | Markdig, ColorCode |
 | `Md2OneNote.Application` | Orchestration: the per-file pipeline, import decisions, progress and error aggregation. Depends only on interfaces. | Core |
 | `Md2OneNote.Interop` | The only assembly that touches `Microsoft.Office.Interop.OneNote`. Retry, XML parsing of hierarchy, error translation. | Core (contracts) |
+| `Md2OneNote.Storage` | The only assembly that touches the filesystem: reading source files and image bytes, and persisting the page index. No COM, no UI, so it is testable against a temp directory. | Core (contracts) |
 | `Md2OneNote.Diagrams.WebView2` | The diagram sandbox and its lifecycle. | Core (contracts), WebView2 |
 | `Md2OneNote.AddIn` | COM registration, ribbon, thread host, WinForms UI, composition root. | all |
 
