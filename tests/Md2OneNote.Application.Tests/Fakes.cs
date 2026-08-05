@@ -177,9 +177,16 @@ namespace Md2OneNote.Application.Tests
 
     internal sealed class FakeAssetSource : IAssetSource
     {
+        private readonly Func<AssetRequest, AssetOutcome> _load;
+
+        public FakeAssetSource(Func<AssetRequest, AssetOutcome> load = null)
+        {
+            _load = load ?? (_ => AssetOutcome.Success(new byte[] { 9 }, "png", 10, 10));
+        }
+
         public AssetOutcome Load(AssetRequest request, string baseDirectory, AssetPolicy policy)
         {
-            return AssetOutcome.Success(new byte[] { 9 }, "png", 10, 10);
+            return _load(request);
         }
     }
 

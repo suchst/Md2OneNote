@@ -37,6 +37,12 @@ namespace Md2OneNote.Core
 
         /// <summary>The file exists but its content is not an image we recognize.</summary>
         public const string AssetNotAnImage = "Core.AssetNotAnImage";
+
+        /// <summary>Nothing is at the resolved path.</summary>
+        public const string AssetNotFound = "Core.AssetNotFound";
+
+        /// <summary>The file exists but could not be opened. Takes the path as {0}, the reason as {1}.</summary>
+        public const string AssetUnreadable = "Core.AssetUnreadable";
     }
 
     /// <summary>

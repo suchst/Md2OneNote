@@ -77,7 +77,9 @@ namespace Md2OneNote.Application
             { CoreStringKeys.AssetUnsupportedType, "'{0}' is not a supported image type." },
             { CoreStringKeys.AssetOutsideDocument, "'{0}' is outside the document's folder." },
             { CoreStringKeys.AssetTooLarge, "'{0}' is larger than the {1} byte limit." },
-            { CoreStringKeys.AssetNotAnImage, "'{0}' is not a readable image." }
+            { CoreStringKeys.AssetNotAnImage, "'{0}' is not a readable image." },
+            { CoreStringKeys.AssetNotFound, "'{0}' was not found." },
+            { CoreStringKeys.AssetUnreadable, "'{0}' could not be read: {1}" }
         };
 
         public static FallbackStringCatalog Instance { get; } = new FallbackStringCatalog();

@@ -19,7 +19,7 @@ namespace Md2OneNote.Application.Tests
         private readonly FakePageIndex _index = new FakePageIndex();
         private readonly List<IDiagramRenderer> _diagramRenderers = new List<IDiagramRenderer>();
 
-        private ImportService Build(Func<string, ParsedDocument> parse = null)
+        private ImportService Build(Func<string, ParsedDocument> parse = null, IAssetSource assets = null)
         {
             var strings = FallbackStringCatalog.Instance;
 
@@ -29,7 +29,7 @@ namespace Md2OneNote.Application.Tests
                 _renderer,
                 _reader,
                 new DiagramResolver(_diagramRenderers, strings),
-                new AssetResolver(new FakeAssetSource(), strings),
+                new AssetResolver(assets ?? new FakeAssetSource(), strings),
                 _index,
                 new FixedClock(new DateTime(2026, 8, 3, 12, 0, 0, DateTimeKind.Utc)),
                 strings);
@@ -56,6 +56,21 @@ namespace Md2OneNote.Application.Tests
             Assert.Equal(FileOutcome.Created, summary.Results[0].Outcome);
             Assert.Single(_gateway.CreatedPageIds);
             Assert.Single(_gateway.WrittenPages);
+        }
+
+        [Fact]
+        public async Task An_image_that_loaded_with_a_reservation_is_reported_although_the_page_is_fine()
+        {
+            _reader.Add(PathA, "![x](../shared/logo.png)");
+            var document = FakeParser.Document(assets: new[] { AssetRequest.Create("../shared/logo.png", "x") });
+            var assets = new FakeAssetSource(_ =>
+                AssetOutcome.Success(new byte[] { 9 }, "png", 10, 10, "outside the folder"));
+
+            var summary = await Run(Build(_ => document, assets), PathA);
+
+            var result = summary.Results[0];
+            Assert.Equal(FileOutcome.Created, result.Outcome);
+            Assert.Contains(result.Warnings, w => w.Message == "outside the folder");
         }
 
         [Fact]

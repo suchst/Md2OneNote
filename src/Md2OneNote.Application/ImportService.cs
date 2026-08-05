@@ -335,6 +335,12 @@ namespace Md2OneNote.Application
                 .Where(a => !a.Succeeded)
                 .Select(a => Diagnostic.Warning("Asset.Failed", a.FailureMessage)));
 
+            // An image that loaded from outside the document's folder is on the page and looks
+            // right, so the report is the only place the user can learn it came from elsewhere.
+            warnings.AddRange(assets.Values
+                .Where(a => a.Succeeded && !string.IsNullOrEmpty(a.Warning))
+                .Select(a => Diagnostic.Warning("Asset.Warning", a.Warning)));
+
             return warnings;
         }
 

@@ -29,7 +29,9 @@ namespace Md2OneNote.Core.Tests
             { CoreStringKeys.AssetUnsupportedType, "unsupported type: {0}" },
             { CoreStringKeys.AssetOutsideDocument, "outside document: {0}" },
             { CoreStringKeys.AssetTooLarge, "too large: {0} / {1}" },
-            { CoreStringKeys.AssetNotAnImage, "not an image: {0}" }
+            { CoreStringKeys.AssetNotAnImage, "not an image: {0}" },
+            { CoreStringKeys.AssetNotFound, "not found: {0}" },
+            { CoreStringKeys.AssetUnreadable, "unreadable: {0} / {1}" }
         };
 
         public static TestCatalog Instance { get; } = new TestCatalog();
