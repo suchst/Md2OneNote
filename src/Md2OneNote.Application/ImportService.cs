@@ -216,8 +216,11 @@ namespace Md2OneNote.Application
                     StringKeys.FailurePageTooLarge, options.Limits.MaxPageBytes));
             }
 
-            // Everything that can fail has now succeeded. From here on the notebook is touched.
-            string pageId;
+            // Everything that can fail on our side has now succeeded. From here on the notebook
+            // is touched. OneNote validates the XML only on write, so a rejection can only arrive
+            // once the page exists — and then the page is removed again, which is what NFR-1
+            // asks for and the reason DeletePage exists.
+            string pageId = null;
             try
             {
                 progress.Step(_strings.Get(StringKeys.ProgressCreatingPage));
@@ -228,11 +231,13 @@ namespace Md2OneNote.Application
             }
             catch (OneNoteBusyException)
             {
+                RemoveQuietly(pageId);
                 return FileResult.Failed(path, FailureReason.OneNoteBusy,
                     _strings.Get(StringKeys.FailureOneNoteBusy));
             }
             catch (OneNoteException ex)
             {
+                RemoveQuietly(pageId);
                 return FileResult.Failed(path, FailureReason.Internal, Format(
                     StringKeys.FailureInternal, ex.Message));
             }
@@ -281,6 +286,27 @@ namespace Md2OneNote.Application
             catch (ArgumentException)
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Rolls back a page whose write failed. Best effort: the failure being reported is the
+        /// write's, and a second failure while cleaning up must not replace or hide it.
+        /// </summary>
+        private void RemoveQuietly(string pageId)
+        {
+            if (string.IsNullOrEmpty(pageId))
+            {
+                return;
+            }
+
+            try
+            {
+                _gateway.DeletePage(pageId);
+            }
+            catch (Exception)
+            {
+                // An empty page is left behind. The user sees the write failure either way.
             }
         }
 

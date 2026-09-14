@@ -169,8 +169,7 @@ namespace Md2OneNote.Core.Tests
         {
             var page = Convert.Page("```python\ndef main():\n    pass\n```");
 
-            var table = Convert.Body(page)[0];
-            Assert.Equal("Table", table.Name.LocalName);
+            var table = Convert.TableIn(Convert.Body(page)[0]);
             Assert.Equal("#F2F2F2", table.Descendants(Convert.One + "Cell").Single().Attribute("shadingColor").Value);
 
             var lines = table.Descendants(Convert.One + "T").Select(t => t.Value).ToArray();
@@ -184,7 +183,7 @@ namespace Md2OneNote.Core.Tests
         {
             var page = Convert.Page("| a | b | c |\n|---|---|---|\n| 1 | 2 |\n");
 
-            var table = Convert.Body(page)[0];
+            var table = Convert.TableIn(Convert.Body(page)[0]);
             Assert.Equal("true", table.Attribute("hasHeaderRow").Value);
             Assert.Equal(3, table.Element(Convert.One + "Columns").Elements().Count());
 
@@ -225,8 +224,8 @@ namespace Md2OneNote.Core.Tests
             var page = Convert.Render(parsed, outcomes);
             var body = Convert.Body(page);
 
-            Assert.Equal("Table", body[0].Name.LocalName);
-            Assert.Contains("graph TD;", body[0].Descendants(Convert.One + "T").First().Value);
+            var table = Convert.TableIn(body[0]);
+            Assert.Contains("graph TD;", table.Descendants(Convert.One + "T").First().Value);
             Assert.Equal("renderer timed out", body[1].Element(Convert.One + "T").Value);
             Assert.Equal("10", Convert.Style(body[1]));
         }
@@ -237,7 +236,22 @@ namespace Md2OneNote.Core.Tests
             // The outcome dictionary is empty: a bug upstream, but never a lost code fence.
             var page = Convert.Page("```mermaid\ngraph TD;\n```", "mermaid");
 
-            Assert.Equal("Table", Convert.Body(page)[0].Name.LocalName);
+            Assert.NotNull(Convert.TableIn(Convert.Body(page)[0]));
+        }
+
+        [Fact]
+        public void Every_block_in_the_outline_is_a_paragraph_because_OneNote_accepts_nothing_else()
+        {
+            // OneNote's content model: one:OEChildren holds one:OE (or HTMLBlock), never a table
+            // or an image directly. It rejects the whole page otherwise — the first real import
+            // did exactly that (2026-09-14). Tables, code blocks, rules and images all wrap.
+            var page = Convert.Page(
+                "# H\n\ntext\n\n| a |\n|---|\n| 1 |\n\n```c\nx\n```\n\n---\n\n> q\n\n- item\n\n![i](missing.png)\n");
+
+            foreach (var block in Convert.Body(page))
+            {
+                Assert.Equal("OE", block.Name.LocalName);
+            }
         }
 
         [Fact]

@@ -145,5 +145,90 @@ namespace Md2OneNote.Interop.Tests
         {
             Assert.Empty(HierarchyReader.ReadPages(xml));
         }
+
+        // ---- FindPageBySource ------------------------------------------------------------
+        // Section listings shaped as OneNote returns them from GetHierarchy(section, hsPages):
+        // each page carries its one:Meta children (docs/page-schema-notes.md §8).
+
+        private static string SectionWithPages(string pages)
+        {
+            return "<one:Section xmlns:one=\"" + Ns + "\" name=\"Notes\" ID=\"{s}\">" + pages + "</one:Section>";
+        }
+
+        private static string Page(string id, string source, string hash)
+        {
+            var metas = string.Empty;
+            if (source != null)
+            {
+                metas += "<one:Meta name=\"Md2OneNote.Source\" content=\"" + source + "\" />";
+            }
+
+            if (hash != null)
+            {
+                metas += "<one:Meta name=\"Md2OneNote.Hash\" content=\"" + hash + "\" />";
+            }
+
+            return "<one:Page ID=\"" + id + "\" name=\"p\">" + metas + "</one:Page>";
+        }
+
+        [Fact]
+        public void FindPageBySource_returns_the_page_carrying_the_source_and_its_hash()
+        {
+            var xml = SectionWithPages(
+                Page("{p1}", @"C:\notes\other.md", "sha256:aaa") +
+                Page("{p2}", @"C:\notes\a.md", "sha256:bbb"));
+
+            var match = HierarchyReader.FindPageBySource(xml, @"C:\notes\a.md");
+
+            Assert.True(match.Found);
+            Assert.Equal("{p2}", match.PageId);
+            Assert.Equal("sha256:bbb", match.SourceHash);
+        }
+
+        [Fact]
+        public void FindPageBySource_returns_none_when_no_page_carries_the_source()
+        {
+            var xml = SectionWithPages(Page("{p1}", @"C:\notes\other.md", "sha256:aaa") + Page("{p2}", null, null));
+
+            Assert.False(HierarchyReader.FindPageBySource(xml, @"C:\notes\a.md").Found);
+        }
+
+        [Fact]
+        public void FindPageBySource_prefers_the_last_page_when_several_claim_the_source()
+        {
+            // Each superseding import appends a page; the newest is the one to compare against.
+            var xml = SectionWithPages(
+                Page("{p1}", @"C:\notes\a.md", "sha256:old") +
+                Page("{p2}", @"C:\notes\a.md", "sha256:new"));
+
+            var match = HierarchyReader.FindPageBySource(xml, @"C:\notes\a.md");
+
+            Assert.Equal("{p2}", match.PageId);
+            Assert.Equal("sha256:new", match.SourceHash);
+        }
+
+        [Fact]
+        public void FindPageBySource_compares_paths_case_insensitively()
+        {
+            var xml = SectionWithPages(Page("{p1}", @"C:\Notes\A.md", "sha256:aaa"));
+
+            Assert.True(HierarchyReader.FindPageBySource(xml, @"c:\notes\a.md").Found);
+        }
+
+        [Fact]
+        public void FindPageBySource_degrades_to_none_when_the_matching_page_has_no_hash()
+        {
+            // A match that cannot be compared must not be trusted (DESIGN.md §7.3).
+            var xml = SectionWithPages(Page("{p1}", @"C:\notes\a.md", null));
+
+            Assert.False(HierarchyReader.FindPageBySource(xml, @"C:\notes\a.md").Found);
+        }
+
+        [Fact]
+        public void FindPageBySource_returns_none_for_malformed_xml_or_empty_source()
+        {
+            Assert.False(HierarchyReader.FindPageBySource("<one:Section", @"C:\notes\a.md").Found);
+            Assert.False(HierarchyReader.FindPageBySource(SectionWithPages(Page("{p}", "x", "h")), null).Found);
+        }
     }
 }

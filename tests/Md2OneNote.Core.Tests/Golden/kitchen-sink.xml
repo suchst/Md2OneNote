@@ -66,80 +66,84 @@
       <one:OE quickStyleIndex="2">
         <one:T><![CDATA[Table]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="true" hasHeaderRow="true">
-        <one:Columns>
-          <one:Column index="0" width="330" />
-          <one:Column index="1" width="330" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell>
-            <one:OEChildren>
-              <one:OE quickStyleIndex="7">
-                <one:T><![CDATA[Column]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-          <one:Cell>
-            <one:OEChildren>
-              <one:OE quickStyleIndex="7">
-                <one:T><![CDATA[Value]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-        <one:Row>
-          <one:Cell>
-            <one:OEChildren>
-              <one:OE quickStyleIndex="7">
-                <one:T><![CDATA[one]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-          <one:Cell>
-            <one:OEChildren>
-              <one:OE quickStyleIndex="7">
-                <one:T><![CDATA[1]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-        <one:Row>
-          <one:Cell>
-            <one:OEChildren>
-              <one:OE quickStyleIndex="7">
-                <one:T><![CDATA[two]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-          <one:Cell>
-            <one:OEChildren>
-              <one:OE quickStyleIndex="7">
-                <one:T><![CDATA[2]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="true" hasHeaderRow="true">
+          <one:Columns>
+            <one:Column index="0" width="330" />
+            <one:Column index="1" width="330" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell>
+              <one:OEChildren>
+                <one:OE quickStyleIndex="7">
+                  <one:T><![CDATA[Column]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+            <one:Cell>
+              <one:OEChildren>
+                <one:OE quickStyleIndex="7">
+                  <one:T><![CDATA[Value]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+          <one:Row>
+            <one:Cell>
+              <one:OEChildren>
+                <one:OE quickStyleIndex="7">
+                  <one:T><![CDATA[one]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+            <one:Cell>
+              <one:OEChildren>
+                <one:OE quickStyleIndex="7">
+                  <one:T><![CDATA[1]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+          <one:Row>
+            <one:Cell>
+              <one:OEChildren>
+                <one:OE quickStyleIndex="7">
+                  <one:T><![CDATA[two]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+            <one:Cell>
+              <one:OEChildren>
+                <one:OE quickStyleIndex="7">
+                  <one:T><![CDATA[2]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
       <one:OE quickStyleIndex="2">
         <one:T><![CDATA[Code]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="false">
-        <one:Columns>
-          <one:Column index="0" width="660" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell shadingColor="#F2F2F2">
-            <one:OEChildren>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[def greet(name):]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;return f"hello {name}"]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[def greet(name):]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;return f"hello {name}"]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
       <one:OE quickStyleIndex="2">
         <one:T><![CDATA[Images]]></one:T>
       </one:OE>
@@ -191,20 +195,22 @@
       <one:OE quickStyleIndex="2">
         <one:T><![CDATA[Break]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="false">
-        <one:Columns>
-          <one:Column index="0" width="660" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell shadingColor="#BFBFBF">
-            <one:OEChildren>
-              <one:OE quickStyleIndex="10">
-                <one:T><![CDATA[]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#BFBFBF">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="10">
+                  <one:T><![CDATA[]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[Footnoted claim<span style='vertical-align:super'>1</span>.]]></one:T>
       </one:OE>

@@ -78,6 +78,73 @@ namespace Md2OneNote.Interop
             return pages;
         }
 
+        /// <summary>
+        /// The page most recently imported from <paramref name="sourcePath"/>, found by the
+        /// <c>one:Meta</c> entries OneNote includes in a page listing (docs/page-schema-notes.md
+        /// §8). <see cref="PageMatch.None"/> when no page carries that source, or when the page
+        /// that does carries no hash — an unreadable match must degrade to "not found", never to
+        /// a guess (DESIGN.md §7.3).
+        /// </summary>
+        /// <remarks>
+        /// When several pages claim the same source — each superseding import adds one — the
+        /// last in document order wins, which is the newest: OneNote lists pages in section
+        /// order and new pages are appended. Paths compare case-insensitively, as Windows does.
+        /// </remarks>
+        public static PageMatch FindPageBySource(string hierarchyXml, string sourcePath)
+        {
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                return PageMatch.None;
+            }
+
+            var root = TryParse(hierarchyXml);
+            if (root == null)
+            {
+                return PageMatch.None;
+            }
+
+            var match = PageMatch.None;
+
+            foreach (var page in root.DescendantsAndSelf())
+            {
+                if (page.Name.LocalName != "Page")
+                {
+                    continue;
+                }
+
+                var id = (string)page.Attribute("ID");
+                if (string.IsNullOrEmpty(id))
+                {
+                    continue;
+                }
+
+                var source = MetaContent(page, PageMetadata.SourceKey);
+                if (!string.Equals(source, sourcePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var hash = MetaContent(page, PageMetadata.HashKey);
+                match = string.IsNullOrEmpty(hash) ? PageMatch.None : PageMatch.Hit(id, hash);
+            }
+
+            return match;
+        }
+
+        private static string MetaContent(XElement page, string name)
+        {
+            foreach (var child in page.Elements())
+            {
+                if (child.Name.LocalName == "Meta"
+                    && string.Equals((string)child.Attribute("name"), name, StringComparison.Ordinal))
+                {
+                    return (string)child.Attribute("content");
+                }
+            }
+
+            return null;
+        }
+
         private static bool IsCurrentlyViewed(XElement element)
         {
             var value = (string)element.Attribute("isCurrentlyViewed");

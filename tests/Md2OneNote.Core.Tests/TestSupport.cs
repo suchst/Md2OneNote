@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Md2OneNote.Core.Parsing;
 using Md2OneNote.Core.Rendering;
+using Xunit;
 
 namespace Md2OneNote.Core.Tests
 {
@@ -93,6 +94,19 @@ namespace Md2OneNote.Core.Tests
             var outline = page.Element(One + "Outline");
             var children = outline == null ? null : outline.Element(One + "OEChildren");
             return children == null ? new XElement[0] : children.Elements().ToArray();
+        }
+
+        /// <summary>
+        /// The table inside a body paragraph. Asserts the shape OneNote requires — a
+        /// <c>one:OE</c> whose only child is the <c>one:Table</c> — so a test that reaches a
+        /// table through here has also checked its placement.
+        /// </summary>
+        public static XElement TableIn(XElement paragraph)
+        {
+            Assert.Equal("OE", paragraph.Name.LocalName);
+            var table = paragraph.Elements().Single();
+            Assert.Equal("Table", table.Name.LocalName);
+            return table;
         }
 
         public static string Style(XElement element)

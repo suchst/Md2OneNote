@@ -126,7 +126,7 @@ namespace Md2OneNote.Core.Tests
             var row = "|" + string.Concat(Enumerable.Repeat(" v |", 1000));
 
             var page = Convert.Page(header + "\n" + divider + "\n" + row);
-            var table = Convert.Body(page)[0];
+            var table = Convert.TableIn(Convert.Body(page)[0]);
 
             var counts = table.Elements(Convert.One + "Row")
                 .Select(r => r.Elements(Convert.One + "Cell").Count())

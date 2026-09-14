@@ -129,6 +129,28 @@ namespace Md2OneNote.Interop
             Call("NavigateTo", () => _application.NavigateTo(pageId, string.Empty, false));
         }
 
+        public void DeletePage(string pageId)
+        {
+            if (string.IsNullOrEmpty(pageId)) throw new ArgumentNullException(nameof(pageId));
+
+            // DateTime.MinValue: no concurrency check, same reasoning as ReplacePageContent.
+            // deletePermanently=false: the recycle bin is the right place for a page a user could
+            // conceivably want to look at, even one that was never meant to exist.
+            Call("DeleteHierarchy", () => _application.DeleteHierarchy(pageId, DateTime.MinValue, false));
+        }
+
+        /// <summary>
+        /// The raw page listing of one section, for <see cref="SectionListingPageIndex"/>. Internal
+        /// rather than part of <see cref="IOneNoteGateway"/>: the interface's shape is what
+        /// enforces FR-21, and a raw-XML reader is not something the application layer should see.
+        /// </summary>
+        internal string ReadSectionListing(string sectionId)
+        {
+            if (string.IsNullOrEmpty(sectionId)) throw new ArgumentNullException(nameof(sectionId));
+
+            return GetHierarchy(sectionId);
+        }
+
         private string GetHierarchy(string startNodeId)
         {
             string xml = null;

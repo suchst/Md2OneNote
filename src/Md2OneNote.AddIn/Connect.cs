@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 using Md2OneNote.AddIn.Logging;
 using Md2OneNote.Core;
@@ -133,11 +134,93 @@ namespace Md2OneNote.AddIn
         {
             Guard("Import", () =>
             {
-                // Phase 2 wires ImportService in here. Deliberately not yet: the pipeline should
-                // not be connected to a notebook until the shell is proven to load.
-                Say("Import is not wired up yet.\r\n\r\nThe conversion pipeline is complete and "
-                    + "tested; this button is the last connection and lands in Phase 2.");
+                if (_gateway == null)
+                {
+                    Say("The add-in loaded but never received OneNote's Application object.");
+                    return;
+                }
+
+                var paths = PickMarkdownFiles(OneNoteWindow());
+                if (paths.Length == 0)
+                {
+                    return;
+                }
+
+                var summary = ImportComposition.Run(_gateway, paths, Version(), _log);
+                Say(ImportComposition.Describe(summary));
             });
+        }
+
+        /// <summary>
+        /// Shows the file picker on its own STA thread, owned by OneNote's window.
+        /// </summary>
+        /// <remarks>
+        /// Not on the callback thread: that thread is inside an incoming COM call from OneNote,
+        /// which is blocked until we return, and a modal dialog opened there with no owner
+        /// appeared nowhere while OneNote sat frozen behind it (2026-09-14). A dedicated STA
+        /// thread has its own message loop and no re-entrancy to worry about, and owning the
+        /// dialog by OneNote's window puts it in front of OneNote where the user is looking.
+        /// Only strings cross back; the COM proxy never leaves the callback thread.
+        /// </remarks>
+        private static string[] PickMarkdownFiles(IntPtr owner)
+        {
+            var picked = new string[0];
+
+            var thread = new Thread(() =>
+            {
+                using (var dialog = new OpenFileDialog())
+                {
+                    dialog.Title = "Import Markdown into the current section";
+                    dialog.Filter = "Markdown files (*.md;*.markdown)|*.md;*.markdown|All files (*.*)|*.*";
+                    dialog.Multiselect = true;
+                    dialog.CheckFileExists = true;
+
+                    var result = owner == IntPtr.Zero
+                        ? dialog.ShowDialog()
+                        : dialog.ShowDialog(new WindowHandle(owner));
+
+                    if (result == DialogResult.OK)
+                    {
+                        picked = dialog.FileNames;
+                    }
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            return picked;
+        }
+
+        /// <summary>OneNote's current window, for owning dialogs; zero when it cannot be read.</summary>
+        private IntPtr OneNoteWindow()
+        {
+            try
+            {
+                var application = _application as IApplication;
+                if (application == null)
+                {
+                    return IntPtr.Zero;
+                }
+
+                return new IntPtr((long)application.Windows.CurrentWindow.WindowHandle);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Could not read OneNote's window handle; dialogs will be unowned", ex);
+                return IntPtr.Zero;
+            }
+        }
+
+        private sealed class WindowHandle : IWin32Window
+        {
+            public WindowHandle(IntPtr handle)
+            {
+                Handle = handle;
+            }
+
+            public IntPtr Handle { get; }
         }
 
         public void OnActiveSectionClicked(object control)
@@ -183,7 +266,8 @@ namespace Md2OneNote.AddIn
         {
             try
             {
-                _log.Info("Ribbon: " + name);
+                _log.Info("Ribbon: " + name + " (thread " + Thread.CurrentThread.ManagedThreadId
+                    + ", " + Thread.CurrentThread.GetApartmentState() + ")");
                 action();
             }
             catch (Exception ex)
@@ -201,9 +285,16 @@ namespace Md2OneNote.AddIn
             }
         }
 
-        private static void Say(string message)
+        private void Say(string message)
         {
-            MessageBox.Show(message, "Md2OneNote", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            var owner = OneNoteWindow();
+            if (owner == IntPtr.Zero)
+            {
+                MessageBox.Show(message, "Md2OneNote", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            MessageBox.Show(new WindowHandle(owner), message, "Md2OneNote", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private static string LoadRibbonXml()

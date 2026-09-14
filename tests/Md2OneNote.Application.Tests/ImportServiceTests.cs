@@ -322,6 +322,33 @@ namespace Md2OneNote.Application.Tests
             Assert.Equal(FailureReason.OneNoteBusy, summary.Results[0].Reason);
         }
 
+        [Fact]
+        public async Task A_rejected_write_removes_the_page_that_was_created_for_it()
+        {
+            // OneNote validates page XML only on write, so a rejected page exists by the time it
+            // is rejected. NFR-1: the failure must leave no page behind.
+            _reader.Add(PathA, "# Hello");
+            _gateway.ReplaceThrows = new OneNoteException("Element Table is unexpected");
+
+            var summary = await Run(Build(), PathA);
+
+            Assert.Equal(FileOutcome.Failed, summary.Results[0].Outcome);
+            Assert.Equal(_gateway.CreatedPageIds, _gateway.DeletedPageIds);
+        }
+
+        [Fact]
+        public async Task A_failure_to_remove_the_rejected_page_still_reports_the_write_failure()
+        {
+            _reader.Add(PathA, "# Hello");
+            _gateway.ReplaceThrows = new OneNoteException("rejected");
+            _gateway.DeleteThrows = new OneNoteException("delete also failed");
+
+            var summary = await Run(Build(), PathA);
+
+            Assert.Equal(FileOutcome.Failed, summary.Results[0].Outcome);
+            Assert.Contains("rejected", summary.Results[0].Message);
+        }
+
         private sealed class CancellingProgress : IImportProgress
         {
             private readonly CancellationTokenSource _cts;

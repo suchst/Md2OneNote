@@ -383,9 +383,22 @@ namespace Md2OneNote.Core.Rendering
             return SingleCellTable(cell, "#BFBFBF");
         }
 
+        /// <summary>
+        /// A table is paragraph content, never a paragraph: OneNote's content model puts
+        /// <c>one:Table</c> inside <c>one:OE</c>, and rejects the page outright when it is placed
+        /// directly under <c>one:OEChildren</c> — "Element Table is unexpected according to
+        /// content model of parent element OEChildren. Expecting: OE, HTMLBlock" (first real
+        /// import, 2026-09-14). The golden files had enshrined the wrong shape, which is why an
+        /// OneNote-validated sample matters more than any number of them.
+        /// </summary>
+        private static XElement InParagraph(XElement table)
+        {
+            return new XElement(OneNote.Ns + "OE", table);
+        }
+
         private static XElement SingleCellTable(XElement cellContent, string shading)
         {
-            return new XElement(
+            return InParagraph(new XElement(
                 OneNote.Ns + "Table",
                 new XAttribute("bordersVisible", "false"),
                 new XElement(
@@ -399,7 +412,7 @@ namespace Md2OneNote.Core.Rendering
                     new XElement(
                         OneNote.Ns + "Cell",
                         new XAttribute("shadingColor", shading),
-                        cellContent)));
+                        cellContent))));
         }
 
         private static XElement WriteTable(TableBlock table, RenderContext context)
@@ -447,7 +460,7 @@ namespace Md2OneNote.Core.Rendering
                 element.Add(row);
             }
 
-            return element;
+            return InParagraph(element);
         }
 
         private static void WriteFootnotes(FootnotesBlock footnotes, XElement container, RenderContext context)

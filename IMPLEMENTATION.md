@@ -351,11 +351,13 @@ Table column widths are distributed evenly unless the Markdown table has an obvi
 
 ### 9.2 Re-import
 
-Store `one:Meta` entries with the source path and a SHA-256 of the file. On import, search the
-active section for a page with a matching `Md2OneNote.Source`:
+Store `one:Meta` entries with the source path and a SHA-256 of the file. On import, read the
+active section's page listing once (`GetHierarchy(sectionId, hsPages)` includes each page's
+`one:Meta`) and look for the last page with a matching `Md2OneNote.Source`:
 
 - no match → create a new page
-- match, hash differs → overwrite that page (keep its ID and title)
+- match, hash differs → create a new, superseding page with a distinguishable title; the original
+  is untouched (FR-21: nothing in the product modifies an existing page — DESIGN.md §7.2)
 - match, hash identical → skip, report as unchanged
 
 ### 9.3 Multi-file import

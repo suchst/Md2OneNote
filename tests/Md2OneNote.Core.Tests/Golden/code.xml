@@ -27,118 +27,128 @@
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[A fenced block with a language:]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="false">
-        <one:Columns>
-          <one:Column index="0" width="660" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell shadingColor="#F2F2F2">
-            <one:OEChildren>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[public sealed class Page]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[{]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;// Indentation has to survive the trip.]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;public string Render(string markdown)]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;{]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return markdown ?? string.Empty;]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;}]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[}]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[public sealed class Page]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[{]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;// Indentation has to survive the trip.]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;public string Render(string markdown)]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;{]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return markdown ?? string.Empty;]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;}]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[}]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[A fenced block with no language:]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="false">
-        <one:Columns>
-          <one:Column index="0" width="660" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell shadingColor="#F2F2F2">
-            <one:OEChildren>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[plain&nbsp;&nbsp;text&nbsp;&nbsp;&nbsp;with&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runs of spaces]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;and a leading tab]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[plain&nbsp;&nbsp;text&nbsp;&nbsp;&nbsp;with&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runs of spaces]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;and a leading tab]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[A fenced block whose language has no highlighter and no renderer:]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="false">
-        <one:Columns>
-          <one:Column index="0" width="660" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell shadingColor="#F2F2F2">
-            <one:OEChildren>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[++++[-&gt;++++&lt;]&gt;.]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[++++[-&gt;++++&lt;]&gt;.]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[An indented block:]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="false">
-        <one:Columns>
-          <one:Column index="0" width="660" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell shadingColor="#F2F2F2">
-            <one:OEChildren>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[indented four spaces]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;and eight]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[indented four spaces]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&nbsp;&nbsp;&nbsp;&nbsp;and eight]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[Code containing characters that must not break the page:]]></one:T>
       </one:OE>
-      <one:Table bordersVisible="false">
-        <one:Columns>
-          <one:Column index="0" width="660" />
-        </one:Columns>
-        <one:Row>
-          <one:Cell shadingColor="#F2F2F2">
-            <one:OEChildren>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[&lt;script&gt;alert("x &amp; y")&lt;/script&gt;]]></one:T>
-              </one:OE>
-              <one:OE quickStyleIndex="9">
-                <one:T><![CDATA[]]&gt; is not a terminator here]]></one:T>
-              </one:OE>
-            </one:OEChildren>
-          </one:Cell>
-        </one:Row>
-      </one:Table>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[&lt;script&gt;alert("x &amp; y")&lt;/script&gt;]]></one:T>
+                </one:OE>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[]]&gt; is not a terminator here]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
     </one:OEChildren>
   </one:Outline>
 </one:Page>

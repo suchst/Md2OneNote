@@ -61,6 +61,16 @@ namespace Md2OneNote.Core
         /// </summary>
         void ReplacePageContent(string pageId, string pageXml);
 
+        /// <summary>
+        /// Removes a page this gateway created in the current import whose
+        /// <see cref="ReplacePageContent"/> failed. OneNote validates page XML only on write,
+        /// so a rejected page necessarily exists by the time it is rejected; deleting it is
+        /// what keeps NFR-1 ("a failure leaves no page behind") true. The page goes to the
+        /// notebook's recycle bin, not to oblivion. This is the one deletion in the product and
+        /// it applies only to a page no user has been able to touch (FR-21).
+        /// </summary>
+        void DeletePage(string pageId);
+
         void NavigateTo(string pageId);
     }
 

@@ -466,10 +466,13 @@ being trusted; if the page is gone, moved, or its metadata no longer matches, th
 and the result is "no match" — which creates a new page. The failure mode of a stale cache is
 therefore a duplicate page, never a lost one.
 
-> **Phase 0 must check whether `one:Meta` is returned by `GetHierarchy(sectionId, hsPages, …)`.**
-> If it is, section scanning costs a single COM call, `IPageIndex` collapses to a trivial
-> implementation over that call, and the cache file is deleted from the design. This is the single
-> highest-value unknown in the spike.
+> **Answered 2026-09-14 (docs/page-schema-notes.md §8): `GetHierarchy(sectionId, hsPages, …)`
+> returns each page's `one:Meta`.** Section scanning is one COM call. `IPageIndex` stays as the
+> seam `ImportService` depends on, implemented by `Md2OneNote.Interop.SectionListingPageIndex`
+> over that call; the pages are the index, `Record` is a no-op, and the JSON cache above was never
+> built. The "cache, never an authority" rule survives in one form: a matching page with no
+> readable hash is treated as no match, so the outcome of anything unreadable is a duplicate page,
+> never a lost one.
 
 ---
 

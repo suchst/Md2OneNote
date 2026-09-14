@@ -131,6 +131,7 @@ that applies to the whole run — an alternative to wrapping everything in a spa
 | column widths | ✅ `one:Columns` → `one:Column index width` (no `isLocked` observed) |
 | cell shading | ✅ `shadingColor="#D0CECE"` on `one:Cell` |
 | a cell holds blocks | ✅ `one:Cell` → `one:OEChildren` → `one:OE` |
+| a table is inside a paragraph | ✅ **`one:OE` → `one:Table`, never `one:OEChildren` → `one:Table`.** OneNote rejects the whole page otherwise: "Element Table is unexpected according to content model of parent element OEChildren. Expecting: OE, HTMLBlock" (first real import, 2026-09-14). The renderer had it wrong for every table, code block and rule; fixed. |
 
 ## 7. Images
 

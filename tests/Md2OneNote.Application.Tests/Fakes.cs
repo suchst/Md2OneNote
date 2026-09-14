@@ -66,6 +66,17 @@ namespace Md2OneNote.Application.Tests
         {
             NavigatedTo.Add(pageId);
         }
+
+        public List<string> DeletedPageIds { get; } = new List<string>();
+
+        public Exception DeleteThrows { get; set; }
+
+        public void DeletePage(string pageId)
+        {
+            if (DeleteThrows != null) throw DeleteThrows;
+
+            DeletedPageIds.Add(pageId);
+        }
     }
 
     internal sealed class FakeSourceFileReader : ISourceFileReader
