@@ -130,8 +130,10 @@ namespace Md2OneNote.Core.Rendering
     }
 
     /// <summary>
-    /// Page geometry. IMPLEMENTATION.md §9.1: a 700 px outline at (36, 86), leaving 660 px of
-    /// usable content width that images, tables and code blocks all size themselves against.
+    /// Page geometry, in points like every size OneNote reads. IMPLEMENTATION.md §9.1: a 700 pt
+    /// outline at (36, 86), leaving 660 pt of usable content width that images, tables and code
+    /// blocks all size themselves against. Pixel sizes must be converted with
+    /// <see cref="PointsPerPixel"/> before being compared with these.
     /// </summary>
     internal static class Layout
     {

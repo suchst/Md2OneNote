@@ -40,7 +40,7 @@ namespace Md2OneNote.Core.Tests
             for (var i = 0; i < parsed.Diagrams.Count; i++)
             {
                 diagrams[parsed.Diagrams[i].Key] = i == 0
-                    ? DiagramOutcome.Success(TinyPng, 720, 480)
+                    ? DiagramOutcome.Success(TinyPng, 720, 480, 2.0)
                     : DiagramOutcome.Failure("diagram render failed");
             }
 

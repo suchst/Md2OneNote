@@ -291,13 +291,15 @@ namespace Md2OneNote.Core.Rendering
 
             if (known && outcome.Succeeded && outcome.Png != null)
             {
-                // Captured at 2x, so half the pixel size is the natural size in CSS pixels
-                // (DESIGN.md §8.1), which are points at 0.75 like any image's. Fitted to the
-                // content column, never enlarged: a five-participant sequence diagram is 927
-                // points wide at natural size, wider than the text. The 2x capture leaves it
-                // sharp when the user enlarges it.
-                var width = outcome.WidthPx / 2.0 * Layout.PointsPerPixel;
-                var height = outcome.HeightPx / 2.0 * Layout.PointsPerPixel;
+                // The capture is the natural size in CSS pixels times its scale (DESIGN.md
+                // §8.1); dividing by the scale gives CSS pixels back, which are points at 0.75
+                // like any image's. The scale is the outcome's, not a constant: the capturer
+                // lowers it below 2 for a diagram that would otherwise exceed its pixel limit.
+                // Fitted to the content column, never enlarged: a five-participant sequence
+                // diagram is 927 points wide at natural size, wider than the text. The scaled
+                // capture leaves it sharp when the user enlarges it.
+                var width = outcome.WidthPx / outcome.Scale * Layout.PointsPerPixel;
+                var height = outcome.HeightPx / outcome.Scale * Layout.PointsPerPixel;
                 var fit = Fit(width);
                 container.Add(Image("png", outcome.Png, width * fit, height * fit));
                 return;

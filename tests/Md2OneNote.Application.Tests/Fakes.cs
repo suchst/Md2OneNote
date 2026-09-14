@@ -182,7 +182,7 @@ namespace Md2OneNote.Application.Tests
             if (Throws != null) throw Throws;
 
             RenderedKeys.Add(request.Key);
-            return Task.FromResult(DiagramOutcome.Success(new byte[] { 1, 2, 3 }, 100, 50));
+            return Task.FromResult(DiagramOutcome.Success(new byte[] { 1, 2, 3 }, 100, 50, 2.0));
         }
     }
 

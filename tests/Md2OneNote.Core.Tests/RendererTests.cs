@@ -199,7 +199,7 @@ namespace Md2OneNote.Core.Tests
             var parsed = Convert.Parse("```mermaid\ngraph TD;\n```", "mermaid");
             var outcomes = new Dictionary<string, DiagramOutcome>
             {
-                { parsed.Diagrams[0].Key, DiagramOutcome.Success(Png, 800, 600) }
+                { parsed.Diagrams[0].Key, DiagramOutcome.Success(Png, 800, 600, 2.0) }
             };
 
             var page = Convert.Render(parsed, outcomes);
@@ -262,7 +262,7 @@ namespace Md2OneNote.Core.Tests
             var parsed = Convert.Parse("```mermaid\nsequenceDiagram\n```", "mermaid");
             var outcomes = new Dictionary<string, DiagramOutcome>
             {
-                { parsed.Diagrams[0].Key, DiagramOutcome.Success(Png, 2472, 1976) }
+                { parsed.Diagrams[0].Key, DiagramOutcome.Success(Png, 2472, 1976, 2.0) }
             };
 
             var page = Convert.Render(parsed, outcomes);
@@ -272,6 +272,28 @@ namespace Md2OneNote.Core.Tests
             Assert.Equal("660", size.Attribute("width").Value);
             var height = double.Parse(size.Attribute("height").Value, System.Globalization.CultureInfo.InvariantCulture);
             Assert.InRange(height, 527, 528);
+        }
+
+        [Fact]
+        public void A_diagram_captured_below_2x_is_still_life_size()
+        {
+            // A 400x3000 CSS px diagram exceeds the 4096 px capture limit at 2x, so the capturer
+            // drops to 4096/3000 = 1.3653x and reports 546x4096. Halving that (review finding,
+            // 2026-09-14) put the diagram on the page at 68% of life size; the outcome's own
+            // scale gives 400x3000 CSS px = 300x2250 pt back.
+            var parsed = Convert.Parse("```mermaid\nsequenceDiagram\n```", "mermaid");
+            var outcomes = new Dictionary<string, DiagramOutcome>
+            {
+                { parsed.Diagrams[0].Key, DiagramOutcome.Success(Png, 546, 4096, 4096 / 3000.0) }
+            };
+
+            var page = Convert.Render(parsed, outcomes);
+            var size = page.Descendants(Convert.One + "Image").Single().Element(Convert.One + "Size");
+            var width = double.Parse(size.Attribute("width").Value, System.Globalization.CultureInfo.InvariantCulture);
+            var height = double.Parse(size.Attribute("height").Value, System.Globalization.CultureInfo.InvariantCulture);
+
+            Assert.InRange(width, 299.5, 300.5);
+            Assert.InRange(height, 2249, 2251);
         }
 
         [Fact]

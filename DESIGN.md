@@ -419,9 +419,9 @@ Code blocks follow `IMPLEMENTATION.md` §5.2: single-cell shaded table, one `one
 line, `&nbsp;` indentation, tokens colored by ColorCode where the language is recognized. Unknown
 language → no highlighting, never a failure (FR-13).
 
-Images emit `one:Size` at half the captured or intrinsic pixel dimensions for diagrams (the 2×
-capture of `IMPLEMENTATION.md` §8.2), and scale down proportionally to the 660 px content width for
-document images (FR-10, §9.1).
+Images emit `one:Size` in points at 0.75 pt per pixel: intrinsic pixels for document images, and
+captured pixels divided by the capture scale (normally 2, `IMPLEMENTATION.md` §8.2) for diagrams.
+Both scale down proportionally to the 660 pt content width and are never enlarged (FR-10, §9.1).
 
 ---
 
@@ -493,7 +493,9 @@ One `WebView2`, created lazily on the host thread, reused across diagrams within
   size. The host window stays 800×600 and never has to match the diagram — it cannot: Windows
   clamps a shown window to the screen, and `CapturePreviewAsync` only sees the window. The PNG's
   header is checked against the size asked for; a mismatch is a failed render, never a stretched
-  picture. The renderer emits `one:Size` at half, fitted to the content column like any image.
+  picture. The outcome carries the scale actually used (2, or less for a diagram that would
+  exceed the pixel limit); the renderer divides the capture by it, converts to points at 0.75 and
+  fits the result to the content column like any image.
 - The extracted shell folder is named by a hash of the embedded files, so an edited shell is never
   served stale.
 - Mermaid: `{ startOnLoad: false, htmlLabels: false, securityLevel: 'strict' }` — `htmlLabels:false`

@@ -158,7 +158,7 @@ namespace Md2OneNote.Diagrams
                 }
 
                 _health.RecordSuccess();
-                return DiagramOutcome.Success(png, actual.Item1, actual.Item2);
+                return DiagramOutcome.Success(png, actual.Item1, actual.Item2, scale);
             }
             catch (OperationCanceledException)
             {

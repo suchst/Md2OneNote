@@ -323,9 +323,14 @@ One hidden `WebView2` instance, reused across diagrams, created on the UI thread
    window cannot be made the diagram's size (Windows clamps the first resize of a shown window to
    the screen; a docked child does not follow the next). A plain `captureBeyondViewport` without
    the metrics override grew the capture downwards only.
-5. Check the PNG header against `w*2 × h*2` (`PngHeader`); a mismatch is a failed render.
-6. Emit `one:Size` at **half** the captured pixel dimensions, fitted to the content column like
-   any image (§9.1), so the picture stays crisp when enlarged.
+5. Check the PNG header against `w*scale × h*scale` (`PngHeader`); a mismatch is a failed render.
+   The scale is 2 unless that would push an edge past 4096 px, in which case it is `4096 /
+   longest edge`; the outcome carries whichever was used.
+6. Emit `one:Size` at the captured pixels **divided by the outcome's scale** (the natural size in
+   CSS pixels), converted to points at 0.75 and fitted to the content column like any image
+   (§9.1): a 720×480 capture at 2× is 270×180 pt. Never assume the scale is 2 — a tall diagram
+   captured at 1.4× would land at 70% of life size. The capture keeps the picture crisp when
+   enlarged.
 
 Mermaid config: `{ startOnLoad: false, htmlLabels: false, securityLevel: 'strict' }`.
 `htmlLabels: false` is required — `foreignObject` content does not rasterize reliably.
@@ -469,7 +474,7 @@ correctly.
 ### Phase 4 — Mermaid
 
 - [ ] `Md2OneNote.Diagrams.WebView2` with the shell and `renderDiagram`
-- [ ] Mermaid at 2× capture, half-size `one:Size`
+- [ ] Mermaid at 2× capture (less for very large diagrams), `one:Size` at natural size in points
 - [ ] Graceful failure per §8.5
 
 **Accept when:** flowchart, sequence, class, state, and Gantt diagrams all render legibly.
