@@ -86,6 +86,7 @@ namespace Md2OneNote.Core.Rendering
         private const string ItalicOpen = "<span style='font-style:italic'>";
         private const string StrikeOpen = "<span style='text-decoration:line-through'>";
         private const string CodeOpen = "<span style='font-family:Consolas;background-color:#F2F2F2'>";
+        private const string SuperscriptOpen = "<span style='vertical-align:super'>";
         private const string SpanClose = "</span>";
 
         /// <summary>
@@ -161,7 +162,13 @@ namespace Md2OneNote.Core.Rendering
             var footnote = inline as FootnoteReferenceRun;
             if (footnote != null)
             {
-                fragment.Text("[" + footnote.Number.ToString(CultureInfo.InvariantCulture) + "]");
+                // A real superscript, now that the dump has shown what OneNote accepts. The square
+                // brackets were a placeholder for exactly this: `<sup>` was the assumed markup and
+                // was never confirmed — OneNote uses a vertical-align span
+                // (docs/page-schema-notes.md §5).
+                fragment.Markup(SuperscriptOpen);
+                fragment.Text(footnote.Number.ToString(CultureInfo.InvariantCulture));
+                fragment.Markup(SpanClose);
             }
         }
 

@@ -37,12 +37,16 @@ namespace Md2OneNote.Core.Rendering
                 OneNote.Ns + "Page",
                 new XAttribute(XNamespace.Xmlns + "one", OneNote.Ns.NamespaceName));
 
+            // TagDef first, then the quick styles. That is the order OneNote writes
+            // (docs/page-schema-notes.md §3), the reverse of what DESIGN.md assumed. Whether it
+            // *rejects* the other order is still unknown and only a write can settle it; matching
+            // what OneNote produces is the cheaper bet either way.
+            page.Add(StyleTable.TagDefinition());
+
             foreach (var definition in StyleTable.Definitions())
             {
                 page.Add(definition);
             }
-
-            page.Add(StyleTable.TagDefinition());
 
             foreach (var meta in MetadataOf(inputs.Metadata))
             {
@@ -192,10 +196,21 @@ namespace Md2OneNote.Core.Rendering
 
         private static void WriteList(ListBlock list, XElement container, RenderContext context)
         {
-            // One sequence per list instance. Centralizing the draw here is what stops two
-            // separate ordered lists from continuing each other's numbering
-            // (IMPLEMENTATION.md §13).
-            var sequence = list.Kind == ListKind.Ordered ? context.NextNumberSequence() : 0;
+            using (context.EnterList())
+            {
+                WriteListItems(list, container, context);
+            }
+        }
+
+        private static void WriteListItems(ListBlock list, XElement container, RenderContext context)
+        {
+            // Both the numbering style and the bullet glyph are chosen by nesting depth, because
+            // that is what OneNote keys them on (docs/page-schema-notes.md §4). The previous
+            // monotonic-counter approach gave the second ordered list on a page a different
+            // numbering style, which was never the intent.
+            var depth = context.ListDepth;
+            var sequence = StyleTable.NumberSequence(depth);
+            var bullet = StyleTable.Bullet(depth);
 
             for (var i = 0; i < list.Items.Count; i++)
             {
@@ -229,7 +244,7 @@ namespace Md2OneNote.Core.Rendering
                         OneNote.Ns + "List",
                         new XElement(
                             OneNote.Ns + "Bullet",
-                            new XAttribute("bullet", "2"),
+                            new XAttribute("bullet", bullet),
                             new XAttribute("fontSize", "11"))));
                 }
 

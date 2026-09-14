@@ -95,8 +95,12 @@ namespace Md2OneNote.Core.Tests
         }
 
         [Fact]
-        public void Separate_ordered_lists_get_separate_number_sequences()
+        public void Ordered_lists_at_the_same_depth_share_a_number_sequence()
         {
+            // The opposite of what this test used to assert. IMPLEMENTATION.md §5.2 and §13 read
+            // numberSequence as a per-list counter that must be unique; a real page shows it naming
+            // the numbering *style*, with two independent top-level lists both on 0
+            // (docs/page-schema-notes.md §4).
             var page = Convert.Page("1. a\n2. b\n\ntext\n\n1. c\n2. d");
 
             var sequences = page.Descendants(Convert.One + "Number")
@@ -104,7 +108,32 @@ namespace Md2OneNote.Core.Tests
                 .Distinct()
                 .ToArray();
 
-            Assert.Equal(2, sequences.Length);
+            Assert.Equal(new[] { "0" }, sequences);
+        }
+
+        [Fact]
+        public void Nested_ordered_lists_change_numbering_style_by_depth()
+        {
+            var page = Convert.Page("1. a\n   1. b\n      1. c\n");
+
+            var sequences = page.Descendants(Convert.One + "Number")
+                .Select(n => n.Attribute("numberSequence").Value)
+                .ToArray();
+
+            // Arabic, then lower-alpha, then lower-roman — the progression OneNote uses.
+            Assert.Equal(new[] { "0", "4", "2" }, sequences);
+        }
+
+        [Fact]
+        public void Nested_bullets_change_glyph_by_depth()
+        {
+            var page = Convert.Page("- a\n  - b\n    - c\n");
+
+            var bullets = page.Descendants(Convert.One + "Bullet")
+                .Select(b => b.Attribute("bullet").Value)
+                .ToArray();
+
+            Assert.Equal(new[] { "2", "3", "13" }, bullets);
         }
 
         [Fact]
@@ -262,7 +291,9 @@ namespace Md2OneNote.Core.Tests
             var page = Convert.Page("Claim[^a].\n\n[^a]: The note.");
             var fragments = Convert.Fragments(page);
 
-            Assert.Contains(fragments, f => f == "Claim[1].");
+            // The marker is a real superscript. `<sup>` was the assumed markup and turned out not
+            // to be what OneNote uses (docs/page-schema-notes.md §5).
+            Assert.Contains(fragments, f => f == "Claim<span style='vertical-align:super'>1</span>.");
             Assert.Contains(fragments, f => f == "NOTES");
             Assert.Contains(fragments, f => f == "[1] The note.");
         }

@@ -17,7 +17,7 @@ namespace Md2OneNote.Core.Rendering
         public const int MaxNestingDepth = 64;
 
         private readonly ISyntaxHighlighter _highlighter;
-        private int _numberSequence;
+        private int _listDepth;
         private int _depth;
         private int _paragraphStyle = StyleTable.Body;
 
@@ -36,12 +36,22 @@ namespace Md2OneNote.Core.Rendering
         }
 
         /// <summary>
-        /// A fresh sequence per ordered-list instance. One allocator, drawn from in one place, so
-        /// that no writer can reintroduce the collision that makes separate lists share a counter.
+        /// How deep in nested lists the writer currently is, 1-based inside a list.
         /// </summary>
-        public int NextNumberSequence()
+        /// <remarks>
+        /// This replaces the per-instance number allocator DESIGN.md §6.2 called for. OneNote keys
+        /// both the numbering style and the bullet glyph on depth, not on list identity
+        /// (docs/page-schema-notes.md §4), so depth is the only thing a writer needs to know.
+        /// </remarks>
+        public int ListDepth
         {
-            return _numberSequence++;
+            get { return _listDepth; }
+        }
+
+        public IDisposable EnterList()
+        {
+            _listDepth++;
+            return new ListScope(this);
         }
 
         /// <summary>Takes one level of the nesting budget. Deeper content is not written.</summary>
@@ -126,6 +136,21 @@ namespace Md2OneNote.Core.Rendering
             if (text.Length > 0)
             {
                 line.Add(new CodeToken(text, color));
+            }
+        }
+
+        private sealed class ListScope : IDisposable
+        {
+            private readonly RenderContext _context;
+
+            public ListScope(RenderContext context)
+            {
+                _context = context;
+            }
+
+            public void Dispose()
+            {
+                _context._listDepth--;
             }
         }
 
