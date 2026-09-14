@@ -2,9 +2,6 @@
 <!--
   Bound to idMso="TabInsert", which is a control id rather than a UI string and is therefore the
   same on every language build (NFR-11, DESIGN.md §11).
-
-  The two Phase 0/1 commands are marked below. They exist to answer the questions a read-back could
-  not, and come out once they have.
 -->
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
   <ribbon>
@@ -19,22 +16,6 @@
                   onAction="OnImportClicked"
                   screentip="Import Markdown files as OneNote pages"
                   supertip="Creates one page per selected .md file in the current section." />
-
-          <!-- Phase 1 acceptance check (IMPLEMENTATION.md §11): prove the add-in loads and can
-               read the hierarchy. Remove once import works. -->
-          <button id="Md2OneNoteActiveSection"
-                  label="Active Section"
-                  imageMso="Info"
-                  onAction="OnActiveSectionClicked"
-                  screentip="Diagnostic: name the section that would receive an import" />
-
-          <!-- Phase 0 remainder: the open questions all need a write, so they need the add-in.
-               Removes with docs/page-schema-notes.md §8. -->
-          <button id="Md2OneNoteDumpXml"
-                  label="Dump Page XML"
-                  imageMso="FileSaveAs"
-                  onAction="OnDumpXmlClicked"
-                  screentip="Diagnostic: write the current page's XML to the desktop" />
 
         </group>
       </tab>

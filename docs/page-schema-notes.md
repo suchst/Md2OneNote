@@ -212,6 +212,8 @@ The spike bound to OneNote through `dynamic`, and that binder cannot talk to One
   and succeed, for the same reason: OneMore calls the vtable.
 
 **Consequence for the plan:** unchanged in outcome, corrected in reasoning. The remaining ❔ items
-need a write, and the add-in's *Dump Page XML* button (running in the surrogate, calling the
-vtable) is the tool for them. `tools/schema-spike` is retired; it could be made to work by
-switching it to `IApplication`, but there is nothing left for it to do that the add-in does not.
+needed a write, and a temporary *Dump Page XML* button in the add-in (running in the surrogate,
+calling the vtable) answered them; the 09-14 dump above came from it. Both the button and
+`tools/schema-spike` were removed on 2026-09-14 once §8 was answered. Anything that needs a fresh
+dump again can use OneMore's *Show XML*, or `Md2OneNote.Interop.IApplication` from a plain
+PowerShell 5.1 script.

@@ -112,12 +112,6 @@ namespace Md2OneNote.AddIn
     {
         [DispId(1)]
         void OnImportClicked([In, MarshalAs(UnmanagedType.IDispatch)] object control);
-
-        [DispId(2)]
-        void OnActiveSectionClicked([In, MarshalAs(UnmanagedType.IDispatch)] object control);
-
-        [DispId(3)]
-        void OnDumpXmlClicked([In, MarshalAs(UnmanagedType.IDispatch)] object control);
     }
 
     /// <summary><c>ext_ConnectMode</c>, for logging which way OneNote loaded us.</summary>

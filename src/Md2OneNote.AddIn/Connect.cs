@@ -222,41 +222,6 @@ namespace Md2OneNote.AddIn
             public IntPtr Handle { get; }
         }
 
-        public void OnActiveSectionClicked(object control)
-        {
-            Guard("ActiveSection", () =>
-            {
-                if (_gateway == null)
-                {
-                    Say("The add-in loaded but never received OneNote's Application object.");
-                    return;
-                }
-
-                try
-                {
-                    var section = _gateway.GetActiveSection();
-                    Say("Active section: " + section.Name + "\r\n\r\nId: " + section.Id);
-                }
-                catch (NoActiveSectionException)
-                {
-                    // FR-6 in miniature: say so plainly rather than guessing a fallback.
-                    Say("No section is currently being viewed, so an import would have nowhere "
-                        + "to put its pages.");
-                }
-            });
-        }
-
-        public void OnDumpXmlClicked(object control)
-        {
-            Guard("DumpXml", () =>
-            {
-                var path = Diagnostics.DumpCurrentPage(_application);
-                Say(path == null
-                    ? "No page is open, so there was nothing to dump."
-                    : "Wrote the current page's XML to:\r\n\r\n" + path);
-            });
-        }
-
         /// <summary>
         /// Runs a ribbon callback so that no failure reaches OneNote, and the user is told what
         /// happened rather than left with a button that silently does nothing.

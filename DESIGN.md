@@ -650,17 +650,19 @@ filesystem diff (NFR-14).
 
 ---
 
-## 14. Feeds into Phase 0
+## 14. Feeds into Phase 0 — answered
 
-The spike in `IMPLEMENTATION.md` §11 stands unchanged, plus three questions this design raised:
+The spike in `IMPLEMENTATION.md` §11 ran, plus the three questions this design raised. Findings
+are in `docs/page-schema-notes.md`:
 
-1. **Does `GetHierarchy(sectionId, hsPages, …)` return `one:Meta` for pages?** Determines whether
-   `IPageIndex` needs a cache at all (§7.3). Highest-value unknown.
-2. **Which `QuickStyleDef` `name` values does OneNote treat as native styles?** Determines whether
-   FR-8 is achievable as specified, i.e. whether the outline view and style picker actually
-   recognize the output.
+1. **Does `GetHierarchy(sectionId, hsPages, …)` return `one:Meta` for pages?** Yes (notes §8).
+   `IPageIndex` needs no cache; `SectionListingPageIndex` reads the section listing (§7.3).
+2. **Which `QuickStyleDef` `name` values does OneNote treat as native styles?** `PageTitle`,
+   `h1`…`h6`, `p`, transcribed from a real page with their fonts and colors (notes §1). `blockquote`,
+   `code` and `cite` remain our own definitions; OneNote accepts them.
 3. **What does `CreateNewPage` + `piBasic` return in the skeleton**, and which attributes must be
-   preserved on the round trip.
+   preserved on the round trip. The page is created blank and replaced in one shot; OneNote
+   reorders and fills in what the replacement omits rather than rejecting it (notes §8).
 
 ---
 
@@ -681,11 +683,12 @@ The spike in `IMPLEMENTATION.md` §11 stands unchanged, plus three questions thi
 
 ---
 
-## 16. Next step
+## 16. Status
 
-Design only — no implementation. Recommended order:
+Phases 0–4 of `IMPLEMENTATION.md` §11 are built and in daily use on the author's machine:
+single- and multi-file import, re-import with `one:Meta` matching, Mermaid through WebView2.
+What this design describes and the code does not yet have:
 
-1. **Phase 0**, extended with §14. Question 1 can delete a component from this design; run it first.
-2. Revise §6.1 and §7.3 against the dump.
-3. `/sc:workflow` to sequence the phases against this structure, or `/sc:implement` starting with
-   `Md2OneNote.Core` — it has no dependencies on the unknowns except the style table.
+1. The modeless progress form of §4 and §10 — imports currently run with no UI until the summary.
+2. The repair executable of §12 and the installer; `tools/register.ps1` does registration today.
+3. The additional diagram formats of §8.4.

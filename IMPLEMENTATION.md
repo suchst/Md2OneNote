@@ -3,8 +3,9 @@
 A COM add-in for **OneNote desktop on Windows** that imports Markdown files and renders them as
 natively styled OneNote pages, including Mermaid and other diagrams.
 
-This document is the working brief. Read it fully before writing code. Phase 0 is a spike whose
-output changes later phases — do not skip it.
+This document is the working brief. Read it fully before writing code. Phase 0 was a spike whose
+output changed later phases; its findings are in `docs/page-schema-notes.md`, which wins wherever
+the two disagree. §11 records what is built.
 
 ---
 
@@ -69,23 +70,28 @@ activation problems that are not worth it here.
 ```
 Md2OneNote.sln
 ├── src/
-│   ├── Md2OneNote.AddIn/          # COM add-in, ribbon, registration
-│   │   ├── AddIn.cs
+│   ├── Md2OneNote.AddIn/          # COM add-in: Connect (entry points), ribbon, composition root
+│   │   ├── Connect.cs
+│   │   ├── ImportComposition.cs   # wires the assemblies below for one import
 │   │   ├── Ribbon.xml             # embedded resource
 │   │   └── Logging/FileLogger.cs
-│   ├── Md2OneNote.Core/           # Markdown → OneNote XML. No interop, no UI.
-│   │   ├── Model/                 # style tokens, page model
-│   │   ├── Rendering/             # OneNoteXmlRenderer + per-block writers
-│   │   └── Diagrams/              # IDiagramRenderer + registry
-│   └── Md2OneNote.Diagrams.WebView2/
-│       ├── WebViewDiagramRenderer.cs
-│       └── Assets/                # mermaid.min.js, katex, viz.js — embedded
-├── tests/
-│   └── Md2OneNote.Core.Tests/
+│   ├── Md2OneNote.Application/    # ImportService, ImportDecider, resolvers — orchestration
+│   ├── Md2OneNote.Core/           # Markdown → OneNote XML. No interop, no I/O.
+│   │   ├── Abstractions/          # the seams: gateway, page index, diagram renderer, …
+│   │   ├── Model/                 # blocks, inlines, outcomes
+│   │   ├── Parsing/               # Markdig → document model
+│   │   ├── Assets/                # path policy, image signature, loader
+│   │   └── Rendering/             # OneNoteXmlRenderer, InlineWriter, StyleTable
+│   ├── Md2OneNote.Diagrams/       # WebView2 shell + Mermaid, DevTools capture
+│   │   ├── WebViewDiagramRenderer.cs
+│   │   └── Assets/                # shell.html, mermaid.min.js — embedded
+│   ├── Md2OneNote.Interop/        # IApplication vtable interface, gateway, retry, page index
+│   └── Md2OneNote.Storage/        # the filesystem behind Core's abstractions
+├── tests/                         # one xUnit project per assembly above, except AddIn
 ├── tools/
-│   └── register.ps1               # per-user registry + COM registration
+│   └── register.ps1               # builds, deploys, per-user registry + COM registration
 └── docs/
-    └── page-schema-notes.md       # output of Phase 0 — fill this in
+    └── page-schema-notes.md       # Phase 0 findings — authoritative over §5
 ```
 
 `Md2OneNote.Core` must not reference the interop assembly. It takes a Markdown string plus a base
@@ -427,64 +433,70 @@ Installer: Inno Setup, per-user, invoking the same registration logic.
 Each phase ends with a working, demonstrable state. Do not start a phase before the previous one
 passes its acceptance check.
 
-### Phase 0 — Schema spike (do this first)
+### Phase 0 — Schema spike — **done 2026-09-14**
 
-- [ ] Manually author a OneNote page containing: H1–H3, a paragraph, a bulleted list, a numbered
+- [x] Manually author a OneNote page containing: H1–H3, a paragraph, a bulleted list, a numbered
       list, a nested list, a task list, a 3×3 table with a header row, a shaded cell, a code-like
       block in Consolas, a blockquote, and an inline image
-- [ ] Dump it: `GetPageContent(pageId, out xml, PageInfo.piAll, XMLSchema.xs2013)`
-- [ ] Record the real `QuickStyleDef` indices, `TagDef` values, bullet numbers, and attribute
+- [x] Dump it: `GetPageContent(pageId, out xml, PageInfo.piAll, XMLSchema.xs2013)` — first through
+      OneMore's *Show XML*, then through a diagnostic button in the add-in itself (since removed)
+- [x] Record the real `QuickStyleDef` indices, `TagDef` values, bullet numbers, and attribute
       spellings in `docs/page-schema-notes.md`
-- [ ] Update §5 of this document if reality differs
+- [x] Update §5 of this document if reality differs — recorded in the notes instead; the notes win
 
 **Accept when:** `docs/page-schema-notes.md` contains a verified style table, and any contradiction
 with §5 is resolved in favour of the dump.
 
-### Phase 1 — Add-in shell
+### Phase 1 — Add-in shell — **done**
 
-- [ ] .NET Framework 4.8 class library, `ComVisible`, fixed GUID and ProgId
-- [ ] `IDTExtensibility2` + `IRibbonExtensibility`, ribbon button on `TabInsert`
-- [ ] File logger to `%LOCALAPPDATA%\Md2OneNote\log.txt`, `OnConnection` fully wrapped in try/catch
-- [ ] `tools/register.ps1` install/uninstall
-- [ ] Button shows a message box with the active section name, read via `GetHierarchy`
+- [x] .NET Framework 4.8 class library, `ComVisible`, fixed GUID and ProgId
+- [x] `IDTExtensibility2` + `IRibbonExtensibility`, ribbon button on `TabInsert`
+- [x] File logger to `%LOCALAPPDATA%\Md2OneNote\log.txt`, `OnConnection` fully wrapped in try/catch
+- [x] `tools/register.ps1` install/uninstall (with the `AppID`/`DllSurrogate` keys of §10)
+- [x] Button shows a message box with the active section name, read via `GetHierarchy` — served
+      its purpose and was removed once import worked
 
 **Accept when:** the button appears in OneNote after running the script, and clicking it names the
 current section.
 
-### Phase 2 — Text rendering
+### Phase 2 — Text rendering — **done**
 
-- [ ] `Md2OneNote.Core` with `OneNoteXmlRenderer.Render(string markdown, string baseDir) → string`
-- [ ] Headings, paragraphs, blockquotes, inline formatting, links
-- [ ] Bulleted, numbered, and nested lists; task lists
-- [ ] Page creation and `UpdatePageContent` wired to the ribbon button, with a file picker
-- [ ] Retry wrapper for `RPC_E_SERVERCALL_RETRYLATER`
+- [x] `Md2OneNote.Core` with the three-pass pipeline of DESIGN.md §3 (parse, resolve, render)
+- [x] Headings, paragraphs, blockquotes, inline formatting, links
+- [x] Bulleted, numbered, and nested lists; task lists
+- [x] Page creation and `UpdatePageContent` wired to the ribbon button, with a file picker
+- [x] Retry wrapper for `RPC_E_SERVERCALL_RETRYLATER`
 
 **Accept when:** a README-sized Markdown file imports and is visually indistinguishable from
 hand-authored OneNote content.
 
-### Phase 3 — Tables, code, local images
+### Phase 3 — Tables, code, local images — **done**
 
-- [ ] GFM tables with header row
-- [ ] Fenced code blocks as shaded tables, `&nbsp;` indentation, syntax highlighting
-- [ ] Local images resolved relative to the source file, embedded as base64, scaled to fit
+- [x] GFM tables with header row
+- [x] Fenced code blocks as shaded tables, `&nbsp;` indentation, syntax highlighting
+- [x] Local images resolved relative to the source file, embedded as base64, life size in points
+      and scaled down to fit (§9.1)
 
 **Accept when:** a document with a 6-column table, a 40-line code block, and two PNGs imports
 correctly.
 
-### Phase 4 — Mermaid
+### Phase 4 — Mermaid — **done**
 
-- [ ] `Md2OneNote.Diagrams.WebView2` with the shell and `renderDiagram`
-- [ ] Mermaid at 2× capture (less for very large diagrams), `one:Size` at natural size in points
-- [ ] Graceful failure per §8.5
+- [x] `Md2OneNote.Diagrams` with the shell and `renderDiagram`
+- [x] Mermaid at 2× capture (less for very large diagrams), `one:Size` at natural size in points
+- [x] Graceful failure per §8.5
 
 **Accept when:** flowchart, sequence, class, state, and Gantt diagrams all render legibly.
+Flowchart and sequence confirmed in OneNote on 2026-09-14; the rest share the same path.
 
 ### Phase 5 — Additional formats and polish
 
 - [ ] Graphviz, Vega-Lite, Chart.js, KaTeX through the same shell
-- [ ] Multi-file import with progress and summary
-- [ ] Re-import via `one:Meta` hash matching
-- [ ] Inno Setup installer
+- [ ] Multi-file import with progress and summary — the import runs for any number of files and
+      ends with a summary; the modeless progress form of §9.3 is still to build
+- [x] Re-import via `one:Meta` hash matching — unchanged files are skipped, or re-imported as a
+      superseding page after one confirmation (REQUIREMENTS.md §3.3)
+- [ ] Inno Setup installer — for now `tools/register.ps1` builds, deploys and registers
 
 ---
 
