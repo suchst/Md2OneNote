@@ -1,7 +1,4 @@
 using System;
-using System.Globalization;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
@@ -17,6 +14,19 @@ namespace Md2OneNote.SchemaSpike
     /// problem. Proving the whole surface we need can be driven late-bound is therefore one of the
     /// answers Phase 0 is meant to produce, so the spike is written the way the real gateway would
     /// have to be.
+    /// <para>
+    /// <b>Binding goes through <c>dynamic</c>, never <c>Type.InvokeMember</c>.</b> This is a Phase 0
+    /// finding, not a style preference. Reflection's COM path calls <c>LoadRegTypeLib</c>, and a
+    /// stock Office x64 Click-to-Run install registers the OneNote type library under
+    /// <c>TypeLib\{0EA692EE-…}\1.1\0\Win32</c> only, pointing at a resource inside the 64-bit
+    /// <c>ONENOTE.EXE</c>. There is no <c>Win64</c> key, so a 64-bit client finds no registration,
+    /// and a 32-bit client cannot load a type library out of a 64-bit image. Both bitnesses fail
+    /// with <c>TYPE_E_LIBNOTREGISTERED (0x8002801D)</c> on the first member access.
+    /// </para>
+    /// <para>
+    /// The <c>dynamic</c> binder resolves members with <c>IDispatch::GetIDsOfNames</c> and never
+    /// touches the type library, so it is unaffected. Md2OneNote.Interop must bind the same way.
+    /// </para>
     /// <para>
     /// The enum values below are copied from the OneNote 15.0 type library. Nothing here trusts
     /// them: the spike calls with each schema value in turn and reports which namespace came back,
@@ -53,7 +63,7 @@ namespace Md2OneNote.SchemaSpike
 
         private const int ServerExecFailure = unchecked((int)0x80080005);
 
-        private readonly object _application;
+        private readonly dynamic _application;
 
         private OneNoteApplication(object application)
         {
@@ -95,10 +105,10 @@ namespace Md2OneNote.SchemaSpike
         /// <summary>The notebook, section and page currently on screen, or nulls if none is.</summary>
         public WindowState CurrentWindow()
         {
-            object window;
+            dynamic window;
             try
             {
-                window = Property(Property(_application, "Windows"), "CurrentWindow");
+                window = _application.Windows.CurrentWindow;
             }
             catch (Exception ex)
             {
@@ -107,69 +117,57 @@ namespace Md2OneNote.SchemaSpike
             }
 
             return new WindowState(
-                Property(window, "CurrentNotebookId") as string,
-                Property(window, "CurrentSectionId") as string,
-                Property(window, "CurrentPageId") as string);
+                (string)window.CurrentNotebookId,
+                (string)window.CurrentSectionId,
+                (string)window.CurrentPageId);
         }
 
         public string GetHierarchy(string startNodeId, int scope, int schema)
         {
-            var args = new object[] { startNodeId, scope, null, schema };
-            Invoke("GetHierarchy", args, 2);
-            return (string)args[2];
+            string xml = null;
+            Retry("GetHierarchy", () => _application.GetHierarchy(startNodeId, scope, out xml, schema));
+            return xml;
         }
 
         public string GetPageContent(string pageId, int pageInfo, int schema)
         {
-            var args = new object[] { pageId, null, pageInfo, schema };
-            Invoke("GetPageContent", args, 1);
-            return (string)args[1];
+            string xml = null;
+            Retry("GetPageContent", () => _application.GetPageContent(pageId, out xml, pageInfo, schema));
+            return xml;
         }
 
         public string CreateNewPage(string sectionId, int pageStyle)
         {
-            var args = new object[] { sectionId, null, pageStyle };
-            Invoke("CreateNewPage", args, 1);
-            return (string)args[1];
+            string pageId = null;
+            Retry("CreateNewPage", () => _application.CreateNewPage(sectionId, out pageId, pageStyle));
+            return pageId;
         }
 
         public void UpdatePageContent(string pageXml, int schema)
         {
             // DateTime.MinValue means "do not check whether the page changed under me". The real
             // gateway will pass it too: it only ever writes pages it has just created.
-            Invoke("UpdatePageContent", new object[] { pageXml, DateTime.MinValue, schema, false }, -1);
+            Retry("UpdatePageContent",
+                () => _application.UpdatePageContent(pageXml, DateTime.MinValue, schema, false));
         }
 
-        private void Invoke(string name, object[] args, int byRefIndex)
+        /// <summary>
+        /// Runs a late-bound call, retrying the "ask again" HRESULTs OneNote raises while it is
+        /// mid-operation. Unlike the reflection path, a dynamic call surfaces the
+        /// <see cref="COMException"/> directly rather than wrapping it.
+        /// </summary>
+        private void Retry(string name, Action call)
         {
-            ParameterModifier[] modifiers = null;
-            if (byRefIndex >= 0)
-            {
-                // Without this the out parameter is marshalled by value and comes back null,
-                // which looks exactly like OneNote returning nothing.
-                var modifier = new ParameterModifier(args.Length);
-                modifier[byRefIndex] = true;
-                modifiers = new[] { modifier };
-            }
-
             for (var attempt = 1; ; attempt++)
             {
                 try
                 {
-                    _application.GetType().InvokeMember(
-                        name,
-                        BindingFlags.InvokeMethod,
-                        null,
-                        _application,
-                        args,
-                        modifiers,
-                        CultureInfo.InvariantCulture,
-                        null);
+                    call();
                     return;
                 }
-                catch (TargetInvocationException ex)
+                catch (COMException ex)
                 {
-                    if (IsBusy(ex.InnerException) && attempt < MaxAttempts)
+                    if (IsBusy(ex) && attempt < MaxAttempts)
                     {
                         Console.Error.WriteLine(
                             "  OneNote is busy; retrying {0} ({1}/{2})", name, attempt, MaxAttempts);
@@ -177,7 +175,6 @@ namespace Md2OneNote.SchemaSpike
                         continue;
                     }
 
-                    ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
                     throw;
                 }
             }
@@ -196,11 +193,6 @@ namespace Md2OneNote.SchemaSpike
             var com = exception as COMException;
             return com != null
                 && (com.HResult == RpcServerCallRetryLater || com.HResult == RpcCallRejected);
-        }
-
-        private static object Property(object target, string name)
-        {
-            return target.GetType().InvokeMember(name, BindingFlags.GetProperty, null, target, null);
         }
 
         internal sealed class WindowState

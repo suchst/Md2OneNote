@@ -604,7 +604,9 @@ this on a non-English build if one is reachable.
 ## 12. Deployment and recovery
 
 Registration follows `IMPLEMENTATION.md` §10: per-user `HKCU` add-in key and per-user CLSID
-registration, no elevation. AnyCPU.
+registration with a `DllSurrogate` AppID, no elevation. AnyCPU. OneNote runs the add-in in a
+`dllhost.exe` COM surrogate rather than inside `ONENOTE.EXE`, which is also how NFR-2 is met: a
+crash in the add-in takes down the surrogate, not OneNote.
 
 The design addition is **NFR-3**. When OneNote disables the add-in after a startup failure, it sets
 `LoadBehavior=2` and adds an entry to `Resiliency\DisabledItems` — and a disabled add-in cannot

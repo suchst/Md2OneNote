@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <Reference Include="System.Xml.Linq" />
+    <!-- The 'dynamic' binder. Required, not a convenience: see OneNoteApplication.cs. -->
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
 </Project>

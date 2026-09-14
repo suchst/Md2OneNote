@@ -380,8 +380,24 @@ COM class registration: either `regasm /codebase` (needs admin) or a per-user wr
 `HKCU\Software\Classes\CLSID\{guid}\InprocServer32` with `mscoree.dll`, plus `Class`, `Assembly`,
 `RuntimeVersion`, and `CodeBase` values. Prefer per-user — no elevation.
 
+**OneNote hosts COM add-ins out of process**, in a `dllhost.exe` COM surrogate — it never loads
+`mscoree.dll` into `ONENOTE.EXE`. A DLL can only be activated that way with a surrogate
+registration, so these two entries are mandatory, not optional:
+
+```
+HKCU\Software\Classes\CLSID\{guid}
+    AppID         REG_SZ    "{guid}"
+HKCU\Software\Classes\AppID\{guid}
+    DllSurrogate  REG_SZ    ""            (empty = the system surrogate, dllhost.exe)
+```
+
+Without them activation fails before any add-in code runs; OneNote reports "a runtime error
+occurred during the loading of the COM Add-in" and sets `LoadBehavior=2`. Per-user is enough:
+verified 2026-09-13 against the working OneMore registration, which has the same keys under HKCU.
+
 `tools/register.ps1` must support `-Install` and `-Uninstall`, and must refuse to run while
-`ONENOTE.EXE` is alive.
+`ONENOTE.EXE` or the add-in's `dllhost.exe` surrogate is alive (the surrogate keeps the DLL open
+for a few seconds after OneNote exits).
 
 Installer: Inno Setup, per-user, invoking the same registration logic.
 
@@ -472,8 +488,14 @@ surface.
 - **`LoadBehavior` silently resets to `2`** when the add-in throws during startup, and OneNote then
   refuses to load it. Check `HKCU\Software\Microsoft\Office\16.0\OneNote\Resiliency\DisabledItems`
   and clear it during development.
+- **Missing `AppID` + `DllSurrogate`** (§10) is the one registration mistake that leaves no trace:
+  "a runtime error occurred during the loading of the COM Add-in", `LoadBehavior` → 2, and nothing
+  in our log, because nothing of ours ran. Activating the class from PowerShell proves nothing —
+  that activates in-process, which OneNote never does.
 - **Bitness mismatch** silently prevents loading. Build AnyCPU.
-- **Debugging** means attaching to `ONENOTE.EXE`, not pressing F5.
+- **Debugging** means attaching to the `dllhost.exe` whose command line carries our CLSID
+  (`DllHost.exe /Processid:{04185F61-…}`), not to `ONENOTE.EXE` and not pressing F5. Message boxes
+  come from that process and can open behind the OneNote window.
 - **Whitespace collapses** in `one:T`. Indentation requires `&nbsp;`.
 - **Base64 images inflate the payload.** A document with 20 diagrams produces several MB of XML;
   that works but is not instant. Build the whole page, submit once.
