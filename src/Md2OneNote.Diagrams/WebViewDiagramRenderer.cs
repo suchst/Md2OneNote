@@ -137,12 +137,28 @@ namespace Md2OneNote.Diagrams
                     return Fault("capturing the diagram exceeded the budget of " + Seconds(_budget), true);
                 }
 
-                _health.RecordSuccess();
                 var scale = ScaleFor(rendered.Width, rendered.Height);
-                return DiagramOutcome.Success(
-                    png,
-                    Math.Max(1, (int)Math.Round(rendered.Width * scale)),
-                    Math.Max(1, (int)Math.Round(rendered.Height * scale)));
+                var expectedWidth = Math.Max(1, (int)Math.Ceiling(rendered.Width * scale));
+                var expectedHeight = Math.Max(1, (int)Math.Ceiling(rendered.Height * scale));
+
+                // A capture of the wrong size is a broken capture, however valid the PNG: the
+                // page would show it stretched to the size it was told (PngHeader). Off by one
+                // is rounding between the host's client size and the browser's own pixels.
+                var actual = PngHeader.Size(png);
+                if (actual == null
+                    || Math.Abs(actual.Item1 - expectedWidth) > 1
+                    || Math.Abs(actual.Item2 - expectedHeight) > 1)
+                {
+                    return Fault(string.Format(
+                        CultureInfo.InvariantCulture,
+                        "the capture was {0}, not the {1}x{2} pixels the diagram needs",
+                        actual == null ? "not a PNG" : actual.Item1 + "x" + actual.Item2,
+                        expectedWidth,
+                        expectedHeight), false);
+                }
+
+                _health.RecordSuccess();
+                return DiagramOutcome.Success(png, actual.Item1, actual.Item2);
             }
             catch (OperationCanceledException)
             {
@@ -212,7 +228,6 @@ namespace Md2OneNote.Diagrams
                     throw new InvalidOperationException("the diagram shell failed to load");
                 }
 
-                _webView.ZoomFactor = CaptureScale;
                 _ready = true;
             });
         }
@@ -231,29 +246,65 @@ namespace Md2OneNote.Diagrams
 
         private async Task<byte[]> CaptureAsync(string id, int width, int height)
         {
+            // The browser's own layout viewport becomes the diagram's box, at capture scale,
+            // through the DevTools protocol; the host window stays 800x600 and never matters.
+            // It had to be the diagram's size with CapturePreviewAsync, and could not: Windows
+            // clamps the first resize of a shown window to the screen, a docked child does not
+            // follow the next one, and a tall sequence diagram lost its bottom quarter. A plain
+            // captureBeyondViewport clip then grew the capture downwards only, and a wide
+            // diagram lost its right half instead (both 2026-09-14). Overriding the device
+            // metrics is what Puppeteer does for a full-page shot, and it holds in both axes.
+            var scale = ScaleFor(width, height);
+            var metrics = string.Format(
+                CultureInfo.InvariantCulture,
+                "{{\"width\":{0},\"height\":{1},\"deviceScaleFactor\":{2},\"mobile\":false}}",
+                width,
+                height,
+                scale);
+            var clip = string.Format(
+                CultureInfo.InvariantCulture,
+                "{{\"format\":\"png\",\"captureBeyondViewport\":true,\"clip\":{{\"x\":0,\"y\":0,\"width\":{0},\"height\":{1},\"scale\":1}}}}",
+                width,
+                height);
+
             var frameId = id + "-frame";
             var frame = Expect(frameId);
 
-            await OnHostAsync(() =>
+            try
             {
-                var scale = ScaleFor(width, height);
-                _webView.ZoomFactor = scale;
-                _host.ClientSize = new Size(
-                    Math.Max(1, (int)Math.Ceiling(width * scale)),
-                    Math.Max(1, (int)Math.Ceiling(height * scale)));
-                return _webView.ExecuteScriptAsync("afterFrame(" + JsLiteral.Quote(frameId) + ")");
-            }).ConfigureAwait(false);
-
-            await frame.ConfigureAwait(false);
-
-            return await OnHostAsync(async () =>
-            {
-                using (var stream = new MemoryStream())
+                await OnHostAsync(async () =>
                 {
-                    await _webView.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, stream);
-                    return stream.ToArray();
+                    await _webView.CoreWebView2.CallDevToolsProtocolMethodAsync("Emulation.setDeviceMetricsOverride", metrics);
+                    await _webView.ExecuteScriptAsync("afterFrame(" + JsLiteral.Quote(frameId) + ")");
+                }).ConfigureAwait(false);
+
+                await frame.ConfigureAwait(false);
+
+                var json = await OnHostAsync(
+                    () => _webView.CoreWebView2.CallDevToolsProtocolMethodAsync("Page.captureScreenshot", clip))
+                    .ConfigureAwait(false);
+
+                var png = ScreenshotReply.TryDecode(json);
+                if (png == null)
+                {
+                    throw new InvalidOperationException("Page.captureScreenshot returned no image.");
                 }
-            }).ConfigureAwait(false);
+
+                return png;
+            }
+            finally
+            {
+                try
+                {
+                    await OnHostAsync(
+                        () => _webView.CoreWebView2.CallDevToolsProtocolMethodAsync("Emulation.clearDeviceMetricsOverride", "{}"))
+                        .ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // The next capture sets its own metrics; a failure to clear costs nothing.
+                }
+            }
         }
 
         private static double ScaleFor(int width, int height)

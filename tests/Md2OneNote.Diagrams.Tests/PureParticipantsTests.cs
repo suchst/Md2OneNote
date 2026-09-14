@@ -104,5 +104,59 @@ namespace Md2OneNote.Diagrams.Tests
             Assert.False(health.Degraded);
             Assert.Equal(1, health.ConsecutiveFaults);
         }
+
+        // ---- ScreenshotReply ------------------------------------------------------------
+
+        [Fact]
+        public void A_screenshot_reply_decodes_its_base64_data()
+        {
+            var bytes = ScreenshotReply.TryDecode("{\"data\":\"iVBORw0KGgo=\"}");
+
+            Assert.Equal(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, bytes);
+        }
+
+        [Fact]
+        public void A_reply_without_an_image_decodes_to_nothing()
+        {
+            Assert.Null(ScreenshotReply.TryDecode(null));
+            Assert.Null(ScreenshotReply.TryDecode(string.Empty));
+            Assert.Null(ScreenshotReply.TryDecode("{}"));
+            Assert.Null(ScreenshotReply.TryDecode("{\"data\":\"\"}"));
+            Assert.Null(ScreenshotReply.TryDecode("{\"data\":\"not base64!\"}"));
+            Assert.Null(ScreenshotReply.TryDecode("not json"));
+        }
+
+        // ---- PngHeader ------------------------------------------------------------------
+
+        [Fact]
+        public void The_pixel_size_comes_from_the_IHDR_chunk()
+        {
+            var png = new byte[]
+            {
+                0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+                0x00, 0x00, 0x00, 0x0D, (byte)'I', (byte)'H', (byte)'D', (byte)'R',
+                0x00, 0x00, 0x09, 0xAC, // 2476
+                0x00, 0x00, 0x07, 0xEA, // 2026
+                0x08, 0x06, 0x00, 0x00, 0x00
+            };
+
+            var size = PngHeader.Size(png);
+
+            Assert.Equal(2476, size.Item1);
+            Assert.Equal(2026, size.Item2);
+        }
+
+        [Fact]
+        public void Anything_that_is_not_a_png_has_no_size()
+        {
+            Assert.Null(PngHeader.Size(null));
+            Assert.Null(PngHeader.Size(new byte[10]));
+            Assert.Null(PngHeader.Size(new byte[40]));
+
+            var jpeg = new byte[40];
+            jpeg[0] = 0xFF;
+            jpeg[1] = 0xD8;
+            Assert.Null(PngHeader.Size(jpeg));
+        }
     }
 }

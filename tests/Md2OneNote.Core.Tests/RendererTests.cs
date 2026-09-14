@@ -255,6 +255,25 @@ namespace Md2OneNote.Core.Tests
         }
 
         [Fact]
+        public void A_wide_diagram_is_fitted_to_the_content_column_like_any_image()
+        {
+            // A real five-participant sequence diagram: 1236x988 natural, captured at 2x.
+            var parsed = Convert.Parse("```mermaid\nsequenceDiagram\n```", "mermaid");
+            var outcomes = new Dictionary<string, DiagramOutcome>
+            {
+                { parsed.Diagrams[0].Key, DiagramOutcome.Success(Png, 2472, 1976) }
+            };
+
+            var page = Convert.Render(parsed, outcomes);
+            var image = page.Descendants(Convert.One + "Image").Single();
+            var size = image.Element(Convert.One + "Size");
+
+            Assert.Equal("660", size.Attribute("width").Value);
+            var height = double.Parse(size.Attribute("height").Value, System.Globalization.CultureInfo.InvariantCulture);
+            Assert.InRange(height, 527, 528);
+        }
+
+        [Fact]
         public void A_thematic_break_is_an_empty_paragraph_not_a_shaded_table()
         {
             // The one-cell shaded table that stood in for a rule showed up in OneNote as a small

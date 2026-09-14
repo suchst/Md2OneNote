@@ -486,8 +486,16 @@ One `WebView2`, created lazily on the host thread, reused across diagrams within
 - JS entry point: `renderDiagram(lang, source, id)` → `{"ok":true,"w":720,"h":410}` or
   `{"ok":false,"error":"…"}`.
 - Each render resets container state, so no diagram can observe or corrupt a previous one (NFR-6).
-- Capture at 2× via `Bounds` + CSS `transform: scale(2)`, `CapturePreviewAsync(Png, …)`,
-  `one:Size` at half.
+- The shell reports the SVG's natural size from its `viewBox` and pins the SVG to it (Mermaid
+  emits `width="100%"`, so the rendered box is the viewport's, not the drawing's).
+- Capture at 2× through the DevTools protocol: `Emulation.setDeviceMetricsOverride` to the
+  diagram's size with `deviceScaleFactor` 2, then `Page.captureScreenshot` with a clip of that
+  size. The host window stays 800×600 and never has to match the diagram — it cannot: Windows
+  clamps a shown window to the screen, and `CapturePreviewAsync` only sees the window. The PNG's
+  header is checked against the size asked for; a mismatch is a failed render, never a stretched
+  picture. The renderer emits `one:Size` at half, fitted to the content column like any image.
+- The extracted shell folder is named by a hash of the embedded files, so an edited shell is never
+  served stale.
 - Mermaid: `{ startOnLoad: false, htmlLabels: false, securityLevel: 'strict' }` — `htmlLabels:false`
   is mandatory, since `foreignObject` does not rasterize reliably.
 

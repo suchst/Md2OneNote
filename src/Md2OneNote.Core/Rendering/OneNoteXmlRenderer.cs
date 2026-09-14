@@ -291,8 +291,14 @@ namespace Md2OneNote.Core.Rendering
 
             if (known && outcome.Succeeded && outcome.Png != null)
             {
-                // Captured at 2x, so half the pixel size is the size to display (DESIGN.md §8.1).
-                container.Add(Image("png", outcome.Png, outcome.WidthPx / 2.0, outcome.HeightPx / 2.0));
+                // Captured at 2x, so half the pixel size is the natural size (DESIGN.md §8.1),
+                // and like any image it is fitted to the content column, never enlarged: a
+                // five-participant sequence diagram is 1236 points wide at natural size, twice
+                // the text. Fitted, the 2x capture still leaves it sharp when the user enlarges it.
+                var width = outcome.WidthPx / 2.0;
+                var height = outcome.HeightPx / 2.0;
+                var fit = width > Layout.ContentWidth ? Layout.ContentWidth / width : 1.0;
+                container.Add(Image("png", outcome.Png, width * fit, height * fit));
                 return;
             }
 

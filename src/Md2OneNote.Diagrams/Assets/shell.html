@@ -53,20 +53,30 @@
         throw new Error('no SVG was produced');
       }
 
-      var rect = svg.getBoundingClientRect();
-      var w = Math.ceil(rect.width);
-      var h = Math.ceil(rect.height);
-      if (!(w > 0 && h > 0) && svg.viewBox && svg.viewBox.baseVal) {
-        w = Math.ceil(svg.viewBox.baseVal.width);
-        h = Math.ceil(svg.viewBox.baseVal.height);
+      // The natural size is the viewBox. Mermaid emits the SVG with width="100%", so its
+      // rendered box is the viewport's width, not the drawing's: measured that way, a wide
+      // sequence diagram came out squeezed to the host window and OneNote stretched the small
+      // capture back up, blurred (2026-09-14). The bounding box is only a fallback.
+      var w = 0;
+      var h = 0;
+      var box = svg.viewBox && svg.viewBox.baseVal;
+      if (box && box.width > 0 && box.height > 0) {
+        w = Math.ceil(box.width);
+        h = Math.ceil(box.height);
+      } else {
+        var rect = svg.getBoundingClientRect();
+        w = Math.ceil(rect.width);
+        h = Math.ceil(rect.height);
       }
       if (!(w > 0 && h > 0)) {
         throw new Error('the diagram has no size');
       }
 
-      // Pin the size so a later resize of the host does not reflow the drawing.
+      // Pin the size so neither the viewport nor a later resize of the host reflows the drawing.
       svg.setAttribute('width', w);
       svg.setAttribute('height', h);
+      svg.style.width = w + 'px';
+      svg.style.height = h + 'px';
       svg.style.maxWidth = 'none';
 
       post({ id: id, ok: true, w: w, h: h });

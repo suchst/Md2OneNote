@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Md2OneNote.Diagrams
@@ -11,8 +12,10 @@ namespace Md2OneNote.Diagrams
     /// <remarks>
     /// The folder lives under <c>%LOCALAPPDATA%\Md2OneNote\shell\{version}</c>, never the
     /// install directory (DESIGN.md §8.3: the sandbox needs no write access to Program Files).
-    /// Versioned by the add-in's own assembly version plus the Mermaid version, so an update
-    /// never serves a stale bundle and never has to delete one either.
+    /// Named by the assembly and Mermaid versions for a human, and by a hash of the embedded
+    /// files for correctness: a shell edited without a version bump was served stale from the
+    /// folder the previous build had extracted (2026-09-14), and version numbers do not change
+    /// on every build. An update never serves an old bundle and never has to delete one either.
     /// </remarks>
     internal static class ShellFiles
     {
@@ -82,7 +85,35 @@ namespace Md2OneNote.Diagrams
 
         private static string Version(Assembly assembly)
         {
-            return assembly.GetName().Version + "-mermaid-" + MermaidVersion(assembly);
+            return assembly.GetName().Version + "-mermaid-" + MermaidVersion(assembly) + "-" + ContentHash(assembly);
+        }
+
+        /// <summary>The first 16 hex digits of a SHA-256 over the embedded files, in order.</summary>
+        private static string ContentHash(Assembly assembly)
+        {
+            using (var sha = SHA256.Create())
+            {
+                foreach (var name in Names)
+                {
+                    using (var stream = assembly.GetManifestResourceStream(name))
+                    {
+                        if (stream == null)
+                        {
+                            throw new InvalidOperationException("Embedded shell resource missing: " + name);
+                        }
+
+                        var buffer = new byte[81920];
+                        int read;
+                        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            sha.TransformBlock(buffer, 0, read, null, 0);
+                        }
+                    }
+                }
+
+                sha.TransformFinalBlock(new byte[0], 0, 0);
+                return BitConverter.ToString(sha.Hash, 0, 8).Replace("-", string.Empty).ToLowerInvariant();
+            }
         }
     }
 }

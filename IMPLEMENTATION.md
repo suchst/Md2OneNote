@@ -314,11 +314,18 @@ One hidden `WebView2` instance, reused across diagrams, created on the UI thread
    `SetVirtualHostNameToFolderMapping` or inlined into the HTML.
 2. Call a JS entry point `renderDiagram(lang, source)` via `ExecuteScriptAsync`; it returns
    `{"ok":true,"w":720,"h":410}` or `{"ok":false,"error":"..."}`.
-3. Set `webView.Bounds = new Rectangle(0, 0, w * 2, h * 2)` and apply a CSS
-   `transform: scale(2)` in the shell so the capture is 2× resolution.
-4. `CapturePreviewAsync(Png, stream)`.
-5. Emit `one:Size` at **half** the captured pixel dimensions so the image is crisp on HiDPI
-   displays.
+3. The shell takes `w`/`h` from the SVG's `viewBox` and pins the SVG to them. Mermaid emits
+   `width="100%"`, so measuring the rendered box gives the viewport's width: a wide sequence
+   diagram came out squeezed and blurred that way (2026-09-14).
+4. `Emulation.setDeviceMetricsOverride {width: w, height: h, deviceScaleFactor: 2}` then
+   `Page.captureScreenshot {clip: 0,0,w,h, captureBeyondViewport: true}` over
+   `CallDevToolsProtocolMethodAsync`. Not `CapturePreviewAsync`: it captures the window, and the
+   window cannot be made the diagram's size (Windows clamps the first resize of a shown window to
+   the screen; a docked child does not follow the next). A plain `captureBeyondViewport` without
+   the metrics override grew the capture downwards only.
+5. Check the PNG header against `w*2 × h*2` (`PngHeader`); a mismatch is a failed render.
+6. Emit `one:Size` at **half** the captured pixel dimensions, fitted to the content column like
+   any image (§9.1), so the picture stays crisp when enlarged.
 
 Mermaid config: `{ startOnLoad: false, htmlLabels: false, securityLevel: 'strict' }`.
 `htmlLabels: false` is required — `foreignObject` content does not rasterize reliably.
