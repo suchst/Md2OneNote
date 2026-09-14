@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using Md2OneNote.AddIn.Diagnostics;
 using Md2OneNote.AddIn.Logging;
 using Md2OneNote.Core;
 using Md2OneNote.Interop;
@@ -170,22 +171,39 @@ namespace Md2OneNote.AddIn
             });
         }
 
+        public void OnAboutClicked(object control)
+        {
+            Guard("About", () =>
+            {
+                var owner = OneNoteWindow();
+                var report = EnvironmentReport.Collect();
+                var logPath = _log.FilePath;
+
+                OnStaThread(() =>
+                {
+                    using (var form = new AboutForm(report, logPath))
+                    {
+                        if (owner == IntPtr.Zero)
+                        {
+                            form.ShowDialog();
+                        }
+                        else
+                        {
+                            form.ShowDialog(new WindowHandle(owner));
+                        }
+                    }
+                });
+            });
+        }
+
         /// <summary>
         /// Shows the file picker on its own STA thread, owned by OneNote's window.
         /// </summary>
-        /// <remarks>
-        /// Not on the callback thread: that thread is inside an incoming COM call from OneNote,
-        /// which is blocked until we return, and a modal dialog opened there with no owner
-        /// appeared nowhere while OneNote sat frozen behind it (2026-09-14). A dedicated STA
-        /// thread has its own message loop and no re-entrancy to worry about, and owning the
-        /// dialog by OneNote's window puts it in front of OneNote where the user is looking.
-        /// Only strings cross back; the COM proxy never leaves the callback thread.
-        /// </remarks>
         private static string[] PickMarkdownFiles(IntPtr owner)
         {
             var picked = new string[0];
 
-            var thread = new Thread(() =>
+            OnStaThread(() =>
             {
                 using (var dialog = new OpenFileDialog())
                 {
@@ -205,11 +223,44 @@ namespace Md2OneNote.AddIn
                 }
             });
 
+            return picked;
+        }
+
+        /// <summary>
+        /// Runs UI on a dedicated STA thread and waits for it.
+        /// </summary>
+        /// <remarks>
+        /// Not on the callback thread: that thread is inside an incoming COM call from OneNote,
+        /// which is blocked until we return, and a modal dialog opened there with no owner
+        /// appeared nowhere while OneNote sat frozen behind it (2026-09-14). A dedicated STA
+        /// thread has its own message loop and no re-entrancy to worry about, and owning the
+        /// dialog by OneNote's window puts it in front of OneNote where the user is looking.
+        /// Only plain data crosses back; the COM proxy never leaves the callback thread.
+        /// </remarks>
+        private static void OnStaThread(Action action)
+        {
+            Exception failure = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    failure = ex;
+                }
+            });
+
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
             thread.Join();
 
-            return picked;
+            if (failure != null)
+            {
+                throw new InvalidOperationException(failure.Message, failure);
+            }
         }
 
         /// <summary>OneNote's current window, for owning dialogs; zero when it cannot be read.</summary>

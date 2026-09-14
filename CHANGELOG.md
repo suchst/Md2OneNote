@@ -19,6 +19,9 @@ All notable changes to Md2OneNote are recorded here. The format follows
   with a one-click option to import it again as a new page. Pages already in OneNote are never
   overwritten.
 - Diagrams degrade to code blocks when the WebView2 runtime is missing; the summary says so.
+- An About button with the version, the environment (OneNote build, WebView2 runtime,
+  Windows), links to the project, and two helpers for bug reports: open the log folder and save
+  a diagnostic bundle.
 - Per-user install and uninstall without administrator rights.
 
 [Unreleased]: https://github.com/suchst/Md2OneNote/commits/main

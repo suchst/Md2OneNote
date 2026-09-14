@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <Reference Include="System.Xml.Linq" />
+    <!-- ZipArchive, for the diagnostic bundle. -->
+    <Reference Include="System.IO.Compression" />
   </ItemGroup>
 
   <ItemGroup>

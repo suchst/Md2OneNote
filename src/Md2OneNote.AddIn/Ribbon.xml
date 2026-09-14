@@ -21,6 +21,14 @@
                   screentip="Import Markdown files as OneNote pages"
                   supertip="Creates one page per selected .md file in the current section." />
 
+          <button id="Md2OneNoteAbout"
+                  label="About"
+                  size="normal"
+                  imageMso="Info"
+                  onAction="OnAboutClicked"
+                  screentip="About Md2OneNote"
+                  supertip="Version, links, the log folder, and a diagnostic bundle for bug reports." />
+
         </group>
       </tab>
     </tabs>

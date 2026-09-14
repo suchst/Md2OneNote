@@ -26,6 +26,12 @@ namespace Md2OneNote.AddIn.Logging
             _path = path;
         }
 
+        /// <summary>Where the log is written; the diagnostic bundle reads it from here.</summary>
+        public string FilePath
+        {
+            get { return _path; }
+        }
+
         public static FileLogger Default()
         {
             var folder = Path.Combine(

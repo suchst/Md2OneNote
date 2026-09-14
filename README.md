@@ -91,7 +91,9 @@ registry key the install created; the files under `%LOCALAPPDATA%\Md2OneNote` ca
 - **Diagrams come out as code.** The summary says why: either the WebView2 runtime is missing
   (install it from Microsoft, then import again) or the diagram itself has an error, which the
   text under the code block names.
-- **Something else.** Every import writes to `%LOCALAPPDATA%\Md2OneNote\log.txt`. Attach it to a
+- **Something else.** Every import writes to `%LOCALAPPDATA%\Md2OneNote\log.txt`. The **About**
+  button next to Import Markdown opens that folder and can save a diagnostic bundle (the log
+  plus version and environment details, nothing from your notebooks). Attach the bundle to a
   [bug report](https://github.com/suchst/Md2OneNote/issues/new/choose).
 
 ## Building

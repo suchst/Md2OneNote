@@ -120,6 +120,9 @@ namespace Md2OneNote.AddIn
         [DispId(2)]
         [return: MarshalAs(UnmanagedType.IDispatch)]
         object LoadImage([In, MarshalAs(UnmanagedType.BStr)] string imageId);
+
+        [DispId(3)]
+        void OnAboutClicked([In, MarshalAs(UnmanagedType.IDispatch)] object control);
     }
 
     /// <summary><c>ext_ConnectMode</c>, for logging which way OneNote loaded us.</summary>

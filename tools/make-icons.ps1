@@ -160,7 +160,8 @@ Write-Host "  $ico"
 
 Copy-Item (Join-Path $png 'icon-32.png') (Join-Path $addInImages 'Import32.png') -Force
 Copy-Item (Join-Path $png 'icon-16.png') (Join-Path $addInImages 'Import16.png') -Force
-Write-Host "  $addInImages\Import32.png, Import16.png"
+Copy-Item (Join-Path $png 'icon-64.png') (Join-Path $addInImages 'Logo64.png') -Force
+Write-Host "  $addInImages\Import32.png, Import16.png, Logo64.png"
 
 $previewHtml = Join-Path $brand 'social-preview.html'
 if (Test-Path $previewHtml) {
