@@ -352,7 +352,12 @@ error message. The import must always complete.
 
 ### 9.1 Sizing
 
-Outline width 700 px at `x=36, y=86`. Images wider than 660 px are scaled down proportionally.
+Every size in the page XML is in **points**. Outline width 700 pt at `x=36, y=86`; the content
+column is 660 pt. A picture's size on the page is its pixel size at 96 DPI, i.e. pixels × 0.75
+(pixels written as points showed every picture a third too large, 2026-09-14); a diagram's
+natural size is its CSS pixel size, converted the same way. Pictures wider than the column are
+scaled down proportionally, never up. The pixels themselves are never resampled, so enlarging a
+picture on the page keeps its quality.
 Table column widths are distributed evenly unless the Markdown table has an obvious key column
 (first column narrower); do not over-engineer this in v1.
 

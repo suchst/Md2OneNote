@@ -291,13 +291,14 @@ namespace Md2OneNote.Core.Rendering
 
             if (known && outcome.Succeeded && outcome.Png != null)
             {
-                // Captured at 2x, so half the pixel size is the natural size (DESIGN.md §8.1),
-                // and like any image it is fitted to the content column, never enlarged: a
-                // five-participant sequence diagram is 1236 points wide at natural size, twice
-                // the text. Fitted, the 2x capture still leaves it sharp when the user enlarges it.
-                var width = outcome.WidthPx / 2.0;
-                var height = outcome.HeightPx / 2.0;
-                var fit = width > Layout.ContentWidth ? Layout.ContentWidth / width : 1.0;
+                // Captured at 2x, so half the pixel size is the natural size in CSS pixels
+                // (DESIGN.md §8.1), which are points at 0.75 like any image's. Fitted to the
+                // content column, never enlarged: a five-participant sequence diagram is 927
+                // points wide at natural size, wider than the text. The 2x capture leaves it
+                // sharp when the user enlarges it.
+                var width = outcome.WidthPx / 2.0 * Layout.PointsPerPixel;
+                var height = outcome.HeightPx / 2.0 * Layout.PointsPerPixel;
+                var fit = Fit(width);
                 container.Add(Image("png", outcome.Png, width * fit, height * fit));
                 return;
             }
@@ -319,8 +320,11 @@ namespace Md2OneNote.Core.Rendering
 
             if (known && outcome.Succeeded && outcome.Bytes != null)
             {
-                var scale = Fit(outcome.WidthPx);
-                container.Add(Image(outcome.Format, outcome.Bytes, outcome.WidthPx * scale, outcome.HeightPx * scale));
+                // The pixels are kept as they are; only the size on the page is in points.
+                var width = outcome.WidthPx * Layout.PointsPerPixel;
+                var height = outcome.HeightPx * Layout.PointsPerPixel;
+                var fit = Fit(width);
+                container.Add(Image(outcome.Format, outcome.Bytes, width * fit, height * fit));
                 return;
             }
 
@@ -338,9 +342,9 @@ namespace Md2OneNote.Core.Rendering
         }
 
         /// <summary>IMPLEMENTATION.md §9.1: nothing is enlarged; anything too wide is scaled down.</summary>
-        private static double Fit(int widthPx)
+        private static double Fit(double widthPt)
         {
-            return widthPx > Layout.ContentWidth ? Layout.ContentWidth / (double)widthPx : 1.0;
+            return widthPt > Layout.ContentWidth ? Layout.ContentWidth / widthPt : 1.0;
         }
 
         private static XElement Image(string format, byte[] bytes, double width, double height)

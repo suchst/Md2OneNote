@@ -29,7 +29,7 @@
       </one:OE>
       <one:OE>
         <one:Image format="png">
-          <one:Size width="360" height="240" isSetByUser="true" />
+          <one:Size width="270" height="180" isSetByUser="true" />
           <one:Data>iVBORw0KGgoAAAANSUhEUg==</one:Data>
         </one:Image>
       </one:OE>
@@ -63,7 +63,7 @@
       </one:OE>
       <one:OE>
         <one:Image format="png">
-          <one:Size width="360" height="240" isSetByUser="true" />
+          <one:Size width="270" height="180" isSetByUser="true" />
           <one:Data>iVBORw0KGgoAAAANSUhEUg==</one:Data>
         </one:Image>
       </one:OE>

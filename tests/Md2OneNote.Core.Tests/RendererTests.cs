@@ -206,9 +206,10 @@ namespace Md2OneNote.Core.Tests
             var image = page.Descendants(Convert.One + "Image").Single();
             var size = image.Element(Convert.One + "Size");
 
+            // 800x600 pixels captured at 2x is 400x300 CSS pixels, which is 300x225 points.
             Assert.Equal("png", image.Attribute("format").Value);
-            Assert.Equal("400", size.Attribute("width").Value);
-            Assert.Equal("300", size.Attribute("height").Value);
+            Assert.Equal("300", size.Attribute("width").Value);
+            Assert.Equal("225", size.Attribute("height").Value);
             Assert.Equal(System.Convert.ToBase64String(Png), image.Element(Convert.One + "Data").Value);
         }
 
@@ -302,9 +303,32 @@ namespace Md2OneNote.Core.Tests
                 .Where(s => s.Parent.Name.LocalName == "Image")
                 .ToArray();
 
+            // 1320 px is 990 pt, wider than the 660 pt column, so it is fitted; 100 px is 75 pt.
             Assert.Equal("660", sizes[0].Attribute("width").Value);
             Assert.Equal("330", sizes[0].Attribute("height").Value);
-            Assert.Equal("100", sizes[1].Attribute("width").Value);
+            Assert.Equal("75", sizes[1].Attribute("width").Value);
+            Assert.Equal("37.5", sizes[1].Attribute("height").Value);
+        }
+
+        [Fact]
+        public void Sizes_are_written_in_points_at_96_dpi_so_pictures_are_life_size()
+        {
+            // OneNote reads one:Size in points. Pixels written as points showed every picture a
+            // third too large (2026-09-14). The bytes are untouched; only the size on the page
+            // changes, so enlarging the picture later loses nothing.
+            var parsed = Convert.Parse("![p](p.png)");
+            var assets = new Dictionary<string, AssetOutcome>
+            {
+                { parsed.Assets[0].Key, AssetOutcome.Success(Png, "png", 96, 96) }
+            };
+
+            var page = Convert.Render(parsed, null, assets);
+            var image = page.Descendants(Convert.One + "Image").Single();
+            var size = image.Element(Convert.One + "Size");
+
+            Assert.Equal("72", size.Attribute("width").Value);
+            Assert.Equal("72", size.Attribute("height").Value);
+            Assert.Equal(System.Convert.ToBase64String(Png), image.Element(Convert.One + "Data").Value);
         }
 
         [Fact]

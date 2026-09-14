@@ -140,6 +140,13 @@ namespace Md2OneNote.Core.Rendering
         public const int OutlineWidth = 700;
         public const int OutlineHeight = 100;
         public const int ContentWidth = 660;
+
+        /// <summary>
+        /// Every size OneNote reads is in points. Pixels written as points showed each image
+        /// and diagram a third larger than life (2026-09-14): a pixel at the 96 DPI that
+        /// images and browsers assume is 0.75 point, so true size at 100% zoom is this.
+        /// </summary>
+        public const double PointsPerPixel = 0.75;
     }
 
     internal static class OneNote
