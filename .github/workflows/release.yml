@@ -55,5 +55,6 @@ jobs:
           body_path: artifacts/notes.md
           prerelease: ${{ env.PRERELEASE == 'True' }}
           files: |
+            artifacts/Md2OneNote-*-setup.exe
             artifacts/Md2OneNote-*.zip
             artifacts/SHA256SUMS

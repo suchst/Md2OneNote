@@ -1,0 +1,29 @@
+<!--
+  Windows Sandbox configuration for the clean-machine check (docs\REQUIREMENTS.md US-6).
+
+  Run tools\build-release.ps1 first, then double-click this file. The artifacts folder appears
+  read-only at C:\Md2OneNote inside the sandbox. In there:
+
+    1. Install OneNote (Microsoft 365 desktop) and sign in, or copy an offline installer in.
+    2. Snapshot:  reg export HKCU\Software\Classes C:\before-classes.reg
+                  reg export HKCU\Software\Microsoft\Office C:\before-office.reg
+                  dir /s /b %LOCALAPPDATA% > C:\before-files.txt
+    3. Run C:\Md2OneNote\Md2OneNote-<version>-setup.exe, start OneNote, import
+       C:\Md2OneNote\samples\kitchen-sink.md from the Insert tab, check the page.
+    4. Close OneNote, uninstall from Apps & features (answer Yes to deleting the folder).
+    5. Snapshot again with "after" names and compare; the diff must be empty apart from what
+       OneNote itself wrote.
+
+  Windows Sandbox needs the optional feature of the same name (Pro/Enterprise).
+-->
+<Configuration>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>D:\Git\Repos\Md2OneNote\artifacts</HostFolder>
+      <SandboxFolder>C:\Md2OneNote</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <Networking>Enable</Networking>
+  <MemoryInMB>4096</MemoryInMB>
+</Configuration>

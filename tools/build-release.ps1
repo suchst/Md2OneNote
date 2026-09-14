@@ -76,7 +76,34 @@ $sums = Get-ChildItem $payload -File -Recurse | ForEach-Object {
     "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $relative
 }
 $sums += "{0}  {1}" -f (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant(), (Split-Path $zip -Leaf)
-Set-Content -Path (Join-Path $artifacts 'SHA256SUMS') -Value $sums -Encoding ascii
 Set-Content -Path (Join-Path $artifacts 'version.txt') -Value $version -Encoding ascii -NoNewline
+
+# Samples for the clean-machine check (tools\sandbox\Md2OneNote.wsb maps artifacts\ in).
+New-Item -ItemType Directory -Path (Join-Path $artifacts 'samples') -Force | Out-Null
+Copy-Item (Join-Path $root 'tests\Md2OneNote.Core.Tests\Samples\*.md') (Join-Path $artifacts 'samples')
+
+# The installer, when Inno Setup is available (it is on GitHub's Windows runners). The
+# assembly version is what the registry's versioned InprocServer32 subkey is named after.
+$iscc = @(
+    $env:ISCC,
+    "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+    "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+    "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+
+if ($iscc) {
+    $fileVersion = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $payload 'Md2OneNote.AddIn.dll')).Version.ToString()
+    Write-Host "Compiling the installer (assembly $fileVersion)" -ForegroundColor Cyan
+    & $iscc /Q "/DVersion=$version" "/DFileVersion=$fileVersion" (Join-Path $root 'installer\Md2OneNote.iss')
+    if ($LASTEXITCODE -ne 0) { throw 'Inno Setup failed.' }
+    $setup = Get-ChildItem $artifacts -Filter '*-setup.exe' | Select-Object -First 1
+    $sums += "{0}  {1}" -f (Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $setup.Name
+    Write-Host "  $($setup.FullName)"
+}
+else {
+    Write-Host 'Inno Setup not found; skipping the installer (winget install JRSoftware.InnoSetup).' -ForegroundColor Yellow
+}
+
+Set-Content -Path (Join-Path $artifacts 'SHA256SUMS') -Value $sums -Encoding ascii
 
 Write-Host "Packaged $zip" -ForegroundColor Green
