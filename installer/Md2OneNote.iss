@@ -132,10 +132,12 @@ end;
 function WaitForOneNoteToClose(const Verb: String): Boolean;
 begin
   Result := True;
+  // Suppressible: a silent install with /SUPPRESSMSGBOXES gets Cancel and exits instead of
+  // waiting on a box nobody will see.
   while OneNoteRunning do
   begin
-    if MsgBox('OneNote is running. Close it (File > Exit), then click Retry to ' + Verb + '.',
-              mbError, MB_RETRYCANCEL) <> IDRETRY then
+    if SuppressibleMsgBox('OneNote is running. Close it (File > Exit), then click Retry to ' + Verb + '.',
+                          mbError, MB_RETRYCANCEL, IDCANCEL) <> IDRETRY then
     begin
       Result := False;
       Exit;
@@ -144,8 +146,8 @@ begin
 
   while SurrogateRunning do
   begin
-    if MsgBox('OneNote has closed but its add-in host (dllhost.exe) is still shutting down. ' +
-              'Wait a few seconds, then click Retry.', mbInformation, MB_RETRYCANCEL) <> IDRETRY then
+    if SuppressibleMsgBox('OneNote has closed but its add-in host (dllhost.exe) is still shutting down. ' +
+                          'Wait a few seconds, then click Retry.', mbInformation, MB_RETRYCANCEL, IDCANCEL) <> IDRETRY then
     begin
       Result := False;
       Exit;
@@ -248,8 +250,8 @@ begin
   begin
     if DirExists(ExpandConstant('{app}')) then
     begin
-      if MsgBox('Also delete the Md2OneNote log and cache folder?' + #13#10 +
-                ExpandConstant('{app}'), mbConfirmation, MB_YESNO) = IDYES then
+      if SuppressibleMsgBox('Also delete the Md2OneNote log and cache folder?' + #13#10 +
+                            ExpandConstant('{app}'), mbConfirmation, MB_YESNO, IDNO) = IDYES then
         DelTree(ExpandConstant('{app}'), True, True, True);
     end;
   end;

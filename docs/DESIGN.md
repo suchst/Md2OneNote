@@ -690,5 +690,12 @@ single- and multi-file import, re-import with `one:Meta` matching, Mermaid throu
 What this design describes and the code does not yet have:
 
 1. The modeless progress form of §4 and §10 — imports currently run with no UI until the summary.
-2. The repair executable of §12 and the installer; `tools/register.ps1` does registration today.
-3. The additional diagram formats of §8.4.
+2. The additional diagram formats of §8.4.
+3. Code signing of the installer and binaries (REQUIREMENTS.md NFR-13); until then releases are
+   previews.
+
+Built since this section was first written (2026-09-14): the per-user Inno Setup installer
+(`installer/Md2OneNote.iss`), which also serves as the repair path of §12 — re-running it
+rewrites the registration and clears OneNote's disabled-items entry; the About dialog with the
+environment report and diagnostic bundle (NFR-17); the custom ribbon icon; and the release
+pipeline (`tools/build-release.ps1`, GitHub workflows).

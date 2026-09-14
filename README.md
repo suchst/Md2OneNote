@@ -44,20 +44,26 @@ The add-in installs per user and needs no administrator rights.
 
 ## Install
 
-Releases with an installer are coming; until then, build from source:
+1. Close OneNote.
+2. Download `Md2OneNote-<version>-setup.exe` from the
+   [latest release](https://github.com/suchst/Md2OneNote/releases/latest) and run it. It installs
+   for the current user only, under `%LOCALAPPDATA%\Md2OneNote`, and asks for no administrator
+   rights.
+3. Start OneNote. On the **Insert** tab you will find a **Markdown** group with **Import Markdown**
+   and **About**.
 
-```powershell
-git clone https://github.com/suchst/Md2OneNote.git
-cd Md2OneNote
-# Close OneNote first. Builds, copies the add-in to %LOCALAPPDATA%\Md2OneNote\bin,
-# and registers it for the current user.
-.\tools\register.ps1 -Install
-```
+Preview releases are not code-signed yet, so Windows SmartScreen may show "Windows protected your
+PC"; choose *More info* and *Run anyway*. The `SHA256SUMS` file on the release page lets you check
+the download.
 
-Start OneNote. On the **Insert** tab you will find a **Markdown** group with **Import Markdown**.
+**Without the installer:** the release also has a zip. Unpack it anywhere, close OneNote, and run
+`register.ps1 -Install` from the unpacked folder in PowerShell (`-Uninstall` removes it again).
 
-To remove the add-in, close OneNote and run `.\tools\register.ps1 -Uninstall`. It deletes every
-registry key the install created; the files under `%LOCALAPPDATA%\Md2OneNote` can then be deleted.
+**From source:** clone the repository and run `.\tools\register.ps1 -Install`; it builds first.
+
+To remove the add-in, use *Apps & features* (or `register.ps1 -Uninstall` for a script install).
+Every registry key the install created is deleted; the uninstaller asks whether to delete the
+log and cache folder too.
 
 ## Use
 

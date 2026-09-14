@@ -430,7 +430,11 @@ verified 2026-09-13 against the working OneMore registration, which has the same
 `ONENOTE.EXE` or the add-in's `dllhost.exe` surrogate is alive (the surrogate keeps the DLL open
 for a few seconds after OneNote exits).
 
-Installer: Inno Setup, per-user, invoking the same registration logic.
+Installer: `installer/Md2OneNote.iss` (Inno Setup 6, `PrivilegesRequired=lowest`). Its
+`[Registry]` section is the script above line for line, with `uninsdeletekey` on the four root
+keys; it refuses to run while OneNote or the surrogate is alive, clears `Resiliency\DisabledItems`
+on install (NFR-3), and reports a missing WebView2 runtime without downloading anything. The two
+must be kept identical so either uninstaller can undo the other's install.
 
 ---
 
@@ -502,7 +506,10 @@ Flowchart and sequence confirmed in OneNote on 2026-09-14; the rest share the sa
       ends with a summary; the modeless progress form of §9.3 is still to build
 - [x] Re-import via `one:Meta` hash matching — unchanged files are skipped, or re-imported as a
       superseding page after one confirmation (REQUIREMENTS.md §3.3)
-- [ ] Inno Setup installer — for now `tools/register.ps1` builds, deploys and registers
+- [x] Inno Setup installer (`installer/Md2OneNote.iss`, compiled by `tools/build-release.ps1`
+      and the release workflow); `tools/register.ps1` remains the development path
+- [x] About dialog with environment report and diagnostic bundle (NFR-17)
+- [ ] Code signing (NFR-13) — SignPath Foundation application pending a public repository
 
 ---
 
