@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Variant A: the Markdown mark (M and a down arrow) on OneNote purple. -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#7719AA"/>
+  <path fill="#FFFFFF" d="M7 46V18h7l7 9 7-9h7v28h-7V29l-7 9-7-9v17z"/>
+  <path fill="#FFFFFF" d="M46 18h6v14h7l-10 13-10-13h7z"/>
+</svg>

@@ -3,7 +3,11 @@
   Bound to idMso="TabInsert", which is a control id rather than a UI string and is therefore the
   same on every language build (NFR-11, DESIGN.md §11).
 -->
-<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+<!--
+  Images come from the loadImage callback, which serves the PNGs embedded under Images/ by the
+  id in the image attribute (RibbonImages.cs). Office picks the size it needs.
+-->
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" loadImage="LoadImage">
   <ribbon>
     <tabs>
       <tab idMso="TabInsert">
@@ -12,7 +16,7 @@
           <button id="Md2OneNoteImport"
                   label="Import Markdown"
                   size="large"
-                  imageMso="ImportSavedImports"
+                  image="Import32"
                   onAction="OnImportClicked"
                   screentip="Import Markdown files as OneNote pages"
                   supertip="Creates one page per selected .md file in the current section." />

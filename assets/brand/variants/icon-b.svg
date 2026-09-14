@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Variant B: a page with a folded corner receiving the Markdown M. -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#7719AA"/>
+  <path fill="#FFFFFF" d="M16 10h22l10 10v34H16z"/>
+  <path fill="#D9C2E6" d="M38 10v10h10z"/>
+  <path fill="#7719AA" d="M21 47V27h6l5 7 5-7h6v20h-6V36l-5 7-5-7v11z"/>
+</svg>

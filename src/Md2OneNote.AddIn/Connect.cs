@@ -130,6 +130,26 @@ namespace Md2OneNote.AddIn
         // Office PIA we deliberately do not reference. Office invokes these by name over IDispatch,
         // so the static type of the parameter is never checked.
 
+        public object LoadImage(string imageId)
+        {
+            try
+            {
+                var picture = RibbonImages.Load(imageId);
+                if (picture == null)
+                {
+                    _log.Error("Ribbon asked for an image that is not embedded: " + imageId, null);
+                }
+
+                return picture;
+            }
+            catch (Exception ex)
+            {
+                // A missing icon is a blank button; an exception here is a broken ribbon.
+                _log.Error("LoadImage(" + imageId + ") failed", ex);
+                return null;
+            }
+        }
+
         public void OnImportClicked(object control)
         {
             Guard("Import", () =>

@@ -22,6 +22,14 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Ribbon.xml" />
+    <!-- Ribbon images, served by RibbonImages.LoadImage under the id in Ribbon.xml. Generated
+         from assets\brand\icon.svg by tools\make-icons.ps1; do not edit the PNGs by hand. -->
+    <EmbeddedResource Include="Images\*.png" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <!-- The Win32 icon Explorer shows on the DLL; same source as everything else. -->
+    <ApplicationIcon>..\..\assets\brand\icon.ico</ApplicationIcon>
+  </PropertyGroup>
 
 </Project>

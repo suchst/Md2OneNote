@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Variant C: a bold M with a wide arrow beneath it, heavy shapes that survive 16 px. -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#7719AA"/>
+  <path fill="#FFFFFF" d="M12 34V12h9l11 12 11-12h9v22h-8V24l-12 13-12-13v10z"/>
+  <path fill="#FFFFFF" d="M26 38h12v6h9L32 56 17 44h9z"/>
+</svg>

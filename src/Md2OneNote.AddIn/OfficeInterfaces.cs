@@ -112,6 +112,14 @@ namespace Md2OneNote.AddIn
     {
         [DispId(1)]
         void OnImportClicked([In, MarshalAs(UnmanagedType.IDispatch)] object control);
+
+        /// <summary>
+        /// The <c>loadImage</c> callback named on <c>customUI</c>: an <c>IPictureDisp</c> for
+        /// each <c>image</c> attribute in <c>Ribbon.xml</c>.
+        /// </summary>
+        [DispId(2)]
+        [return: MarshalAs(UnmanagedType.IDispatch)]
+        object LoadImage([In, MarshalAs(UnmanagedType.BStr)] string imageId);
     }
 
     /// <summary><c>ext_ConnectMode</c>, for logging which way OneNote loaded us.</summary>

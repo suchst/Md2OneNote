@@ -5,7 +5,7 @@
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 [![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/suchst)
 
-**Import Markdown files into OneNote as pages that look typed, not pasted.**
+![Md2OneNote: import Markdown into OneNote as pages that look typed, not pasted](assets/brand/social-preview.png)
 
 Md2OneNote is a small add-in for OneNote on Windows. It adds one button to the Insert tab. You
 pick one or more `.md` files, and each becomes a page in the current section: real OneNote
