@@ -17,7 +17,10 @@
     Remove the registration.
 
 .PARAMETER Path
-    The built Md2OneNote.AddIn.dll. Defaults to the Debug build in this repository.
+    The built Md2OneNote.AddIn.dll. Defaults to the Debug build in this repository, which is
+    built first: two deploys shipped a fresh add-in over a stale Core.dll before this
+    (2026-09-14), because "dotnet test" builds the test projects, not the add-in. An explicit
+    Path is deployed as-is.
 
 .EXAMPLE
     .\tools\register.ps1 -Install
@@ -116,6 +119,11 @@ function Copy-Payload {
 
 function Invoke-Install {
     if (-not $Path) {
+        $project = Join-Path $PSScriptRoot '..\src\Md2OneNote.AddIn\Md2OneNote.AddIn.csproj'
+        Write-Host "Building $project" -ForegroundColor Cyan
+        & dotnet build $project --nologo -v q
+        if ($LASTEXITCODE -ne 0) { throw "Build failed." }
+
         $Path = Join-Path $PSScriptRoot '..\src\Md2OneNote.AddIn\bin\Debug\net48\Md2OneNote.AddIn.dll'
     }
 
