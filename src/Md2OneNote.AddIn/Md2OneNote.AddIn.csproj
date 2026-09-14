@@ -27,6 +27,7 @@
     <ProjectReference Include="..\Md2OneNote.Interop\Md2OneNote.Interop.csproj" />
     <ProjectReference Include="..\Md2OneNote.Application\Md2OneNote.Application.csproj" />
     <ProjectReference Include="..\Md2OneNote.Storage\Md2OneNote.Storage.csproj" />
+    <ProjectReference Include="..\Md2OneNote.Diagrams\Md2OneNote.Diagrams.csproj" />
   </ItemGroup>
 
   <ItemGroup>

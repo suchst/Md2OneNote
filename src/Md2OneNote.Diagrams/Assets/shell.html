@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Layer one of the network isolation (DESIGN.md §8.3). 'self' is the virtual host the shell is
+     served from, which is the only place a script may come from; nothing may be fetched. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'">
+<title>Md2OneNote diagram shell</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; overflow: hidden; }
+  #c { display: inline-block; }
+  #c svg { display: block; max-width: none !important; }
+</style>
+</head>
+<body>
+<div id="c"></div>
+<script src="mermaid.min.js"></script>
+<script>
+  // htmlLabels:false is mandatory: foreignObject content does not rasterize reliably
+  // (IMPLEMENTATION.md §8.2). securityLevel:'strict' keeps diagram text from becoming markup.
+  mermaid.initialize({
+    startOnLoad: false,
+    htmlLabels: false,
+    securityLevel: 'strict',
+    theme: 'default',
+    flowchart: { htmlLabels: false },
+    fontFamily: 'Calibri, "Segoe UI", sans-serif'
+  });
+
+  var renderCount = 0;
+
+  function post(message) {
+    window.chrome.webview.postMessage(JSON.stringify(message));
+  }
+
+  // Each render starts from an empty container, so no diagram can observe or corrupt a previous
+  // one (NFR-6). The reply always carries the id it was asked with; the host matches on it.
+  async function renderDiagram(lang, source, id) {
+    try {
+      var container = document.getElementById('c');
+      container.innerHTML = '';
+
+      if (lang !== 'mermaid') {
+        throw new Error('unsupported diagram language: ' + lang);
+      }
+
+      var result = await mermaid.render('m' + (++renderCount), source);
+      container.innerHTML = result.svg;
+
+      var svg = container.querySelector('svg');
+      if (!svg) {
+        throw new Error('no SVG was produced');
+      }
+
+      var rect = svg.getBoundingClientRect();
+      var w = Math.ceil(rect.width);
+      var h = Math.ceil(rect.height);
+      if (!(w > 0 && h > 0) && svg.viewBox && svg.viewBox.baseVal) {
+        w = Math.ceil(svg.viewBox.baseVal.width);
+        h = Math.ceil(svg.viewBox.baseVal.height);
+      }
+      if (!(w > 0 && h > 0)) {
+        throw new Error('the diagram has no size');
+      }
+
+      // Pin the size so a later resize of the host does not reflow the drawing.
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      svg.style.maxWidth = 'none';
+
+      post({ id: id, ok: true, w: w, h: h });
+    } catch (e) {
+      post({ id: id, ok: false, error: String(e && e.message ? e.message : e) });
+    }
+  }
+
+  // Two frames after a resize the layout is committed and the capture is of the final drawing.
+  function afterFrame(id) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        post({ id: id, ok: true, w: 0, h: 0 });
+      });
+    });
+  }
+</script>
+</body>
+</html>

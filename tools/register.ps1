@@ -103,6 +103,13 @@ function Copy-Payload {
     Get-ChildItem $source -File | Where-Object { $_.Extension -in '.dll', '.pdb', '.config' } |
         ForEach-Object { Copy-Item $_.FullName -Destination $target -Force }
 
+    # WebView2's managed wrapper finds its native loader under runtimes\win-<arch>\native next
+    # to itself. The SDK lays that folder out in the build output; it ships as-is.
+    $runtimes = Join-Path $source 'runtimes'
+    if (Test-Path $runtimes) {
+        Copy-Item $runtimes -Destination $target -Recurse -Force
+    }
+
     Write-Host "  deployed to $target"
     return (Join-Path $target (Split-Path $SourceDll -Leaf))
 }

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <RootNamespace>Md2OneNote.Diagrams</RootNamespace>
+    <AssemblyName>Md2OneNote.Diagrams</AssemblyName>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <!-- The WebView2 control is a WinForms control; the renderer hosts it on its own STA thread
+         with a message loop (IMPLEMENTATION.md §8.2, §13). -->
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <!-- Pinned. The SDK's managed wrapper and the native WebView2Loader.dll ship together and
+         must match; the Evergreen runtime on the machine is separate and forward-compatible. -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3179.45" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Md2OneNote.Core\Md2OneNote.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The shell and the Mermaid bundle (MIT, Assets/mermaid.LICENSE) are embedded and
+         extracted next to the user data folder at first use. NavigateToString caps at 2 MB and
+         the bundle is 5.5 MB, so the shell is served from a folder mapping instead. -->
+    <EmbeddedResource Include="Assets\shell.html" LogicalName="shell.html" />
+    <EmbeddedResource Include="Assets\mermaid.min.js" LogicalName="mermaid.min.js" />
+    <EmbeddedResource Include="Assets\mermaid.version.txt" LogicalName="mermaid.version.txt" />
+    <None Include="Assets\mermaid.LICENSE" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Md2OneNote.Diagrams.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
