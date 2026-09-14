@@ -1,23 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <LangVersion>7.3</LangVersion>
-    <RootNamespace>Md2OneNote.Core.Tests</RootNamespace>
-    <AssemblyName>Md2OneNote.Core.Tests</AssemblyName>
-    <IsPackable>false</IsPackable>
-    <!-- Markdig pulls System.Memory, which the net48 test host resolves to a different
-         version than the one restored here. Redirects are a test-host concern only. -->
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-    <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Md2OneNote.Core\Md2OneNote.Core.csproj" />
   </ItemGroup>

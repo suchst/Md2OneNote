@@ -1,17 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <LangVersion>7.3</LangVersion>
-    <RootNamespace>Md2OneNote.Application</RootNamespace>
-    <AssemblyName>Md2OneNote.Application</AssemblyName>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Md2OneNote.Core\Md2OneNote.Core.csproj" />
   </ItemGroup>

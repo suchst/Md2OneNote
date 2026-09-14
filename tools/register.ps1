@@ -17,13 +17,18 @@
     Remove the registration.
 
 .PARAMETER Path
-    The built Md2OneNote.AddIn.dll. Defaults to the Debug build in this repository, which is
-    built first: two deploys shipped a fresh add-in over a stale Core.dll before this
-    (2026-09-14), because "dotnet test" builds the test projects, not the add-in. An explicit
-    Path is deployed as-is.
+    The built Md2OneNote.AddIn.dll. When omitted: a Md2OneNote.AddIn.dll next to this script
+    (the layout of a release zip) is used as-is; otherwise the add-in in this repository is
+    built first, because "dotnet test" builds the test projects, not the add-in, and two deploys
+    shipped a fresh add-in over a stale Core.dll before this existed (2026-09-14).
+
+.PARAMETER Configuration
+    Debug (default) or Release; which build to make and deploy when Path is omitted and the
+    script runs from the repository.
 
 .EXAMPLE
     .\tools\register.ps1 -Install
+    .\tools\register.ps1 -Install -Configuration Release
     .\tools\register.ps1 -Uninstall
 #>
 [CmdletBinding(DefaultParameterSetName = 'Install')]
@@ -34,7 +39,10 @@ param(
     [Parameter(ParameterSetName = 'Uninstall')]
     [switch] $Uninstall,
 
-    [string] $Path
+    [string] $Path,
+
+    [ValidateSet('Debug', 'Release')]
+    [string] $Configuration = 'Debug'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -119,12 +127,23 @@ function Copy-Payload {
 
 function Invoke-Install {
     if (-not $Path) {
+        $sibling = Join-Path $PSScriptRoot 'Md2OneNote.AddIn.dll'
         $project = Join-Path $PSScriptRoot '..\src\Md2OneNote.AddIn\Md2OneNote.AddIn.csproj'
-        Write-Host "Building $project" -ForegroundColor Cyan
-        & dotnet build $project --nologo -v q
-        if ($LASTEXITCODE -ne 0) { throw "Build failed." }
 
-        $Path = Join-Path $PSScriptRoot '..\src\Md2OneNote.AddIn\bin\Debug\net48\Md2OneNote.AddIn.dll'
+        if (Test-Path $sibling) {
+            # A release zip: the built add-in sits next to this script and is installed as-is.
+            $Path = $sibling
+        }
+        elseif (Test-Path $project) {
+            Write-Host "Building $project ($Configuration)" -ForegroundColor Cyan
+            & dotnet build $project -c $Configuration --nologo -v q
+            if ($LASTEXITCODE -ne 0) { throw "Build failed." }
+
+            $Path = Join-Path $PSScriptRoot "..\src\Md2OneNote.AddIn\bin\$Configuration\net48\Md2OneNote.AddIn.dll"
+        }
+        else {
+            throw "No Md2OneNote.AddIn.dll next to this script and no repository around it. Pass -Path."
+        }
     }
 
     $built = (Resolve-Path $Path -ErrorAction SilentlyContinue).Path

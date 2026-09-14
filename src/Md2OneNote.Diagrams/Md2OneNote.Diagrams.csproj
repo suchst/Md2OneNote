@@ -1,19 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <LangVersion>7.3</LangVersion>
-    <RootNamespace>Md2OneNote.Diagrams</RootNamespace>
-    <AssemblyName>Md2OneNote.Diagrams</AssemblyName>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <!-- The WebView2 control is a WinForms control; the renderer hosts it on its own STA thread
          with a message loop (IMPLEMENTATION.md §8.2, §13). -->
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <!-- Pinned. The SDK's managed wrapper and the native WebView2Loader.dll ship together and
          must match; the Evergreen runtime on the machine is separate and forward-compatible. -->
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3179.45" />

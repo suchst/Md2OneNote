@@ -1,0 +1,45 @@
+<Project>
+
+  <!-- Shared by every project in src/ and tests/. Anything a single project needs differently
+       stays in that project's .csproj. -->
+
+  <PropertyGroup>
+    <!-- The one place the product version lives. The release workflow refuses a tag that does
+         not match it (docs/RELEASING.md). A pre-release suffix is fine: AssemblyVersion and
+         FileVersion take the numeric part, InformationalVersion keeps the whole string. -->
+    <Version>1.0.0-preview.1</Version>
+
+    <Product>Md2OneNote</Product>
+    <Authors>Stanislav Sucharda</Authors>
+    <Company>Stanislav Sucharda</Company>
+    <Copyright>Copyright (c) 2026 Stanislav Sucharda</Copyright>
+    <Description>Imports Markdown files as styled OneNote pages.</Description>
+    <RepositoryUrl>https://github.com/suchst/Md2OneNote</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/suchst/Md2OneNote</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- OneNote hosts add-ins in the .NET Framework CLR; there is no other target. -->
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- AnyCPU is not optional: a 32-bit OneNote will not load a 64-bit add-in, and the reverse
+         holds too (docs/IMPLEMENTATION.md §2). -->
+    <PlatformTarget>AnyCPU</PlatformTarget>
+
+    <!-- The same sources produce the same bytes, so a release can be rebuilt and compared. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Lets the SDK build net48 without a Visual Studio targeting pack on the machine. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
