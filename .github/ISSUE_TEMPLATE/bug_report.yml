@@ -1,0 +1,45 @@
+name: Bug report
+description: Something imported wrongly, the button is missing, or OneNote complained.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The log file answers most questions, so please attach it.
+        It is at `%LOCALAPPDATA%\Md2OneNote\log.txt` (paste that path into Explorer's address bar).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Markdown that reproduces it
+      description: The smallest file that shows the problem. Remove anything private first.
+      render: markdown
+  - type: input
+    id: onenote
+    attributes:
+      label: OneNote version
+      description: File > Account > About OneNote, e.g. "Microsoft 365, Version 2508 (Build 20326.20144) 64-bit".
+    validations:
+      required: true
+  - type: input
+    id: addin
+    attributes:
+      label: Md2OneNote version
+      description: From the release you installed, or the About dialog.
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Attach `log.txt` or paste the last lines from the failed import.
+      render: text

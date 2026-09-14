@@ -1,0 +1,25 @@
+name: Feature request
+description: Markdown that should import differently, or something the add-in should do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you are trying to do
+      description: The situation, not the solution. What Markdown, what you want to see in OneNote.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How it could work
+      description: Optional. Sketch the behaviour you have in mind.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Does it fit the product?
+      description: Md2OneNote imports individual Markdown files once; docs/REQUIREMENTS.md section 6 lists what is out of scope (sync, vaults, wiki-links, CLI).
+      options:
+        - Yes, it is about importing a file
+        - Not sure
+        - It is about something else (sync, automation, editing existing pages)

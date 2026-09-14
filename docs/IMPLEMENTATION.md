@@ -69,6 +69,9 @@ activation problems that are not worth it here.
 
 ```
 Md2OneNote.sln
+Directory.Build.props              # version, product metadata, net48, warnings as errors
+README.md, LICENSE, CHANGELOG.md, CONTRIBUTING.md, SECURITY.md, THIRD-PARTY-NOTICES.md
+.github/                           # CI and release workflows, issue templates, funding
 ├── src/
 │   ├── Md2OneNote.AddIn/          # COM add-in: Connect (entry points), ribbon, composition root
 │   │   ├── Connect.cs
@@ -88,9 +91,12 @@ Md2OneNote.sln
 │   ├── Md2OneNote.Interop/        # IApplication vtable interface, gateway, retry, page index
 │   └── Md2OneNote.Storage/        # the filesystem behind Core's abstractions
 ├── tests/                         # one xUnit project per assembly above, except AddIn
+│   └── Directory.Build.props      # test packages and binding redirects, shared
 ├── tools/
-│   └── register.ps1               # builds, deploys, per-user registry + COM registration
+│   ├── register.ps1               # builds (or takes a release payload), deploys, registers per-user
+│   └── build-release.ps1          # Release build, tests, zip + SHA256SUMS under artifacts/
 └── docs/
+    ├── REQUIREMENTS.md, DESIGN.md, IMPLEMENTATION.md (this file), RELEASING.md
     └── page-schema-notes.md       # Phase 0 findings — authoritative over §5
 ```
 
