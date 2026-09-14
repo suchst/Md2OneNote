@@ -1,0 +1,20 @@
+# Store text as LF, check out with the platform's line ending.
+* text=auto
+
+# Windows-only files that tooling expects with CRLF.
+*.sln   text eol=crlf
+*.ps1   text eol=crlf
+*.iss   text eol=crlf
+*.wsb   text eol=crlf
+
+# Golden files are compared after line-ending normalisation, but keep them byte-stable anyway.
+tests/**/Golden/*.xml -text
+
+# Binary assets.
+*.png   binary
+*.ico   binary
+*.jpg   binary
+*.gif   binary
+*.dll   binary
+*.pdb   binary
+*.nupkg binary
