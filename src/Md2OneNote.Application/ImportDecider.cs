@@ -28,6 +28,15 @@ namespace Md2OneNote.Application
     {
         public static ImportDecision Decide(PageMatch match, string sourceHash)
         {
+            return Decide(match, sourceHash, false);
+        }
+
+        /// <param name="reimportUnchanged">
+        /// The user has asked for the file again although nothing changed. The answer is still
+        /// never "overwrite": it is a superseding page, titled to tell the copies apart.
+        /// </param>
+        public static ImportDecision Decide(PageMatch match, string sourceHash, bool reimportUnchanged)
+        {
             if (match == null) throw new ArgumentNullException(nameof(match));
             if (string.IsNullOrEmpty(sourceHash)) throw new ArgumentNullException(nameof(sourceHash));
 
@@ -36,7 +45,8 @@ namespace Md2OneNote.Application
                 return ImportDecision.Create;
             }
 
-            return string.Equals(match.SourceHash, sourceHash, StringComparison.Ordinal)
+            var unchanged = string.Equals(match.SourceHash, sourceHash, StringComparison.Ordinal);
+            return unchanged && !reimportUnchanged
                 ? ImportDecision.Skip
                 : ImportDecision.CreateSuperseding;
         }

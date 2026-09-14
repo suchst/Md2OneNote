@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading;
@@ -7,6 +8,7 @@ using Md2OneNote.Application;
 using Md2OneNote.Core;
 using Md2OneNote.Core.Parsing;
 using Md2OneNote.Core.Rendering;
+using Md2OneNote.Diagrams;
 using Md2OneNote.Interop;
 using Md2OneNote.Storage;
 
@@ -26,27 +28,123 @@ namespace Md2OneNote.AddIn
     /// </remarks>
     internal static class ImportComposition
     {
-        public static ImportSummary Run(OneNoteGateway gateway, string[] paths, string toolVersion, FileLogger log)
+        /// <summary>Runs one import and returns the report to show the user.</summary>
+        /// <param name="askReimport">
+        /// Asked once, with the number of files skipped as unchanged, when there were any; true
+        /// runs those files again as superseding pages. Null never asks.
+        /// </param>
+        public static string Run(
+            OneNoteGateway gateway,
+            string[] paths,
+            string toolVersion,
+            FileLogger log,
+            Func<int, bool> askReimport)
         {
             var strings = FallbackStringCatalog.Instance;
 
-            var service = new ImportService(
-                gateway,
-                new MarkdownDocumentParser(strings),
-                new OneNoteXmlRenderer(),
-                new SourceFileReader(),
-                new DiagramResolver(new IDiagramRenderer[0], strings),
-                new AssetResolver(new AssetLoader(new FileBytes(), strings), strings),
-                new SectionListingPageIndex(gateway),
-                SystemClock.Instance,
-                strings);
+            // The diagram renderer lives for one import (DESIGN.md §8.1) and only exists when the
+            // WebView2 runtime does (§8.4). Without it, "mermaid" is not a diagram language at
+            // all as far as the parser is concerned, so every fence stays a code block and the
+            // report says why.
+            var renderers = new List<IDiagramRenderer>();
+            var languages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            WebViewDiagramRenderer browser = null;
+            string note = null;
 
-            var options = ImportOptions.CreateDefault(toolVersion, ParseOptions.None);
+            var runtime = WebViewDiagramRenderer.AvailableRuntimeVersion();
+            if (runtime != null)
+            {
+                browser = new WebViewDiagramRenderer();
+                renderers.Add(browser);
+                languages.Add("mermaid");
+                log.Info("Diagram rendering via WebView2 runtime " + runtime);
+            }
+            else
+            {
+                note = "Diagram rendering is unavailable: the Microsoft Edge WebView2 runtime is not installed. "
+                    + "Diagrams were imported as code.";
+                log.Info("WebView2 runtime not found; diagrams fall back to code blocks.");
+            }
 
-            return service
-                .ImportAsync(paths, options, new LoggingProgress(log), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult();
+            try
+            {
+                var service = new ImportService(
+                    gateway,
+                    new MarkdownDocumentParser(strings),
+                    new OneNoteXmlRenderer(),
+                    new SourceFileReader(),
+                    new DiagramResolver(renderers, strings),
+                    new AssetResolver(new AssetLoader(new FileBytes(), strings), strings),
+                    new SectionListingPageIndex(gateway),
+                    SystemClock.Instance,
+                    strings);
+
+                var options = ImportOptions.CreateDefault(toolVersion, new ParseOptions(languages));
+                var progress = new LoggingProgress(log);
+
+                var summary = service
+                    .ImportAsync(paths, options, progress, CancellationToken.None)
+                    .GetAwaiter()
+                    .GetResult();
+
+                // Unchanged files were skipped (FR-19). The skip is cheap — nothing was parsed or
+                // rendered — so asking afterwards costs nothing, and the second pass is just the
+                // skipped files with the flag on.
+                var skipped = SkippedPaths(summary);
+                if (skipped.Length > 0 && askReimport != null && askReimport(skipped.Length))
+                {
+                    log.Info("Re-importing " + skipped.Length + " unchanged file(s) at the user's request.");
+                    var again = service
+                        .ImportAsync(skipped, options.WithReimportUnchanged(true), progress, CancellationToken.None)
+                        .GetAwaiter()
+                        .GetResult();
+                    summary = Merge(summary, again);
+                }
+
+                return note == null ? Describe(summary) : Describe(summary) + "\r\n\r\n" + note;
+            }
+            finally
+            {
+                if (browser != null)
+                {
+                    browser.Dispose();
+                }
+            }
+        }
+
+        private static string[] SkippedPaths(ImportSummary summary)
+        {
+            var paths = new List<string>();
+            foreach (var result in summary.Results)
+            {
+                if (result.Outcome == FileOutcome.Skipped)
+                {
+                    paths.Add(result.SourcePath);
+                }
+            }
+
+            return paths.ToArray();
+        }
+
+        /// <summary>The first pass, with each skipped file's result replaced by its second-pass result.</summary>
+        private static ImportSummary Merge(ImportSummary first, ImportSummary second)
+        {
+            var byPath = new Dictionary<string, FileResult>(StringComparer.OrdinalIgnoreCase);
+            foreach (var result in second.Results)
+            {
+                byPath[result.SourcePath] = result;
+            }
+
+            var merged = new List<FileResult>();
+            foreach (var result in first.Results)
+            {
+                FileResult replacement;
+                merged.Add(result.Outcome == FileOutcome.Skipped && byPath.TryGetValue(result.SourcePath, out replacement)
+                    ? replacement
+                    : result);
+            }
+
+            return new ImportSummary(merged);
         }
 
         /// <summary>The end-of-import report as one message box (FR-4).</summary>

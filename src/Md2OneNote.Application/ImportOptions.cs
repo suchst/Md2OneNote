@@ -49,6 +49,18 @@ namespace Md2OneNote.Application
             ImportLimits limits,
             string supersedingTitleFormat,
             bool navigateToFirstCreatedPage)
+            : this(toolVersion, parseOptions, assetPolicy, limits, supersedingTitleFormat, navigateToFirstCreatedPage, false)
+        {
+        }
+
+        public ImportOptions(
+            string toolVersion,
+            ParseOptions parseOptions,
+            AssetPolicy assetPolicy,
+            ImportLimits limits,
+            string supersedingTitleFormat,
+            bool navigateToFirstCreatedPage,
+            bool reimportUnchanged)
         {
             if (string.IsNullOrEmpty(toolVersion)) throw new ArgumentNullException(nameof(toolVersion));
             if (parseOptions == null) throw new ArgumentNullException(nameof(parseOptions));
@@ -62,6 +74,22 @@ namespace Md2OneNote.Application
             Limits = limits;
             SupersedingTitleFormat = supersedingTitleFormat;
             NavigateToFirstCreatedPage = navigateToFirstCreatedPage;
+            ReimportUnchanged = reimportUnchanged;
+        }
+
+        /// <summary>
+        /// Import a file again even though it is unchanged since its last import into this
+        /// section. Off by default (FR-19: unchanged files are skipped); the add-in turns it on
+        /// for a second pass after asking the user. The page created is a superseding one, so the
+        /// two copies stay tellable apart (FR-20).
+        /// </summary>
+        public bool ReimportUnchanged { get; }
+
+        public ImportOptions WithReimportUnchanged(bool reimportUnchanged)
+        {
+            return new ImportOptions(
+                ToolVersion, ParseOptions, AssetPolicy, Limits, SupersedingTitleFormat,
+                NavigateToFirstCreatedPage, reimportUnchanged);
         }
 
         public string ToolVersion { get; }

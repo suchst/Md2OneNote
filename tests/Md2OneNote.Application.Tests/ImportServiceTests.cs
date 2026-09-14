@@ -88,6 +88,21 @@ namespace Md2OneNote.Application.Tests
         }
 
         [Fact]
+        public async Task Unchanged_file_is_imported_again_as_a_superseding_page_when_asked()
+        {
+            const string text = "# Hello";
+            _reader.Add(PathA, text);
+            _index.Seed("section-1", PathA, "page-existing", Sha256.OfString(text));
+
+            var options = Options().WithReimportUnchanged(true);
+            var summary = await Build().ImportAsync(new[] { PathA }, options, NullImportProgress.Instance, CancellationToken.None);
+
+            Assert.Equal(FileOutcome.CreatedSuperseding, summary.Results[0].Outcome);
+            Assert.Single(_gateway.CreatedPageIds);
+            Assert.Contains("(imported ", _renderer.Calls[0].Title);
+        }
+
+        [Fact]
         public async Task Changed_file_creates_a_second_page_and_leaves_the_original_alone()
         {
             _reader.Add(PathA, "# Changed");

@@ -36,5 +36,22 @@ namespace Md2OneNote.Application.Tests
 
             Assert.Equal(ImportDecision.CreateSuperseding, decision);
         }
+
+        [Fact]
+        public void Identical_hash_supersedes_when_the_user_asked_for_it_again()
+        {
+            // Still never "overwrite": a second copy the user asked for is a superseding page.
+            var match = PageMatch.Hit("page-1", "sha256:aaa");
+
+            var decision = ImportDecider.Decide(match, "sha256:aaa", reimportUnchanged: true);
+
+            Assert.Equal(ImportDecision.CreateSuperseding, decision);
+        }
+
+        [Fact]
+        public void The_flag_changes_nothing_for_a_file_never_imported_before()
+        {
+            Assert.Equal(ImportDecision.Create, ImportDecider.Decide(PageMatch.None, "sha256:aaa", reimportUnchanged: true));
+        }
     }
 }

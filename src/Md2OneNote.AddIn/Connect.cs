@@ -146,8 +146,7 @@ namespace Md2OneNote.AddIn
                     return;
                 }
 
-                var summary = ImportComposition.Run(_gateway, paths, Version(), _log);
-                Say(ImportComposition.Describe(summary));
+                Say(ImportComposition.Run(_gateway, paths, Version(), _log, AskReimport));
             });
         }
 
@@ -283,6 +282,24 @@ namespace Md2OneNote.AddIn
                 {
                 }
             }
+        }
+
+        /// <summary>
+        /// The one question an import asks (FR-19 versus "I want it again"). Asked after the
+        /// cheap first pass, so a routine import of unchanged files still costs one click.
+        /// </summary>
+        private bool AskReimport(int count)
+        {
+            var message = count == 1
+                ? "1 file is unchanged since its last import into this section.\r\n\r\nImport it again as a new page?"
+                : count + " files are unchanged since their last import into this section.\r\n\r\nImport them again as new pages?";
+
+            var owner = OneNoteWindow();
+            var answer = owner == IntPtr.Zero
+                ? MessageBox.Show(message, "Md2OneNote", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                : MessageBox.Show(new WindowHandle(owner), message, "Md2OneNote", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            return answer == DialogResult.Yes;
         }
 
         private void Say(string message)

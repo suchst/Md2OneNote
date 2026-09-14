@@ -157,7 +157,7 @@ namespace Md2OneNote.Application
             var hash = Sha256.OfBytes(file.Bytes);
 
             var match = _index.TryFind(section.Id, path);
-            var decision = ImportDecider.Decide(match, hash);
+            var decision = ImportDecider.Decide(match, hash, options.ReimportUnchanged);
             if (decision == ImportDecision.Skip)
             {
                 return FileResult.Skipped(path, match.PageId, _strings.Get(StringKeys.SkippedUnchanged));
