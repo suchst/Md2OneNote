@@ -278,7 +278,7 @@ To find the active section, call `GetHierarchy(null, HierarchyScope.hsPages, ...
 | `FencedCodeBlock` with a diagram language | route to `IDiagramRenderer` (§8) |
 | `FencedCodeBlock` otherwise | shaded single-cell table, highlighted |
 | `CodeBlock` (indented) | same as fenced, no highlighting |
-| `ThematicBreakBlock` | `one:OE` containing an empty `p` with a bottom border, or a 1px shaded table |
+| `ThematicBreakBlock` | an empty body paragraph (vertical space); OneNote has no rule, and a shaded table read as a grey box |
 | `LinkInline` with `IsImage` | resolve relative to the Markdown file, embed as `one:Image` |
 | `FootnoteGroup` | appended at the end under an `h2` "Notes", `cite` style |
 | YAML front matter | parsed, not rendered; `title` overrides the page title |

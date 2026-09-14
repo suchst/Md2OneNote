@@ -377,10 +377,15 @@ namespace Md2OneNote.Core.Rendering
             return SingleCellTable(cell, "#F2F2F2");
         }
 
+        /// <summary>
+        /// A thematic break is vertical space, nothing more. OneNote has no horizontal rule, and
+        /// the shaded one-cell table that stood in for one showed up as a small grey box under
+        /// whatever preceded it (first real import, 2026-09-14) — worse than no rule at all.
+        /// The section boundary the author meant is still there as a blank line.
+        /// </summary>
         private static XElement ThematicBreak()
         {
-            var cell = new XElement(OneNote.Ns + "OEChildren", Paragraph(StyleTable.Cite, string.Empty));
-            return SingleCellTable(cell, "#BFBFBF");
+            return Paragraph(StyleTable.Body, string.Empty);
         }
 
         /// <summary>

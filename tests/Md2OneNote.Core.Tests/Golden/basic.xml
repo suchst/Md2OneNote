@@ -48,21 +48,8 @@
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[Inline &lt;sup&gt;markup&lt;/sup&gt; is kept as text instead.]]></one:T>
       </one:OE>
-      <one:OE>
-        <one:Table bordersVisible="false">
-          <one:Columns>
-            <one:Column index="0" width="660" />
-          </one:Columns>
-          <one:Row>
-            <one:Cell shadingColor="#BFBFBF">
-              <one:OEChildren>
-                <one:OE quickStyleIndex="10">
-                  <one:T><![CDATA[]]></one:T>
-                </one:OE>
-              </one:OEChildren>
-            </one:Cell>
-          </one:Row>
-        </one:Table>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[]]></one:T>
       </one:OE>
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[A claim that needs a source<span style='vertical-align:super'>1</span>, and another<span style='vertical-align:super'>2</span>.]]></one:T>

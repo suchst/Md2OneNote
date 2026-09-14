@@ -195,21 +195,8 @@
       <one:OE quickStyleIndex="2">
         <one:T><![CDATA[Break]]></one:T>
       </one:OE>
-      <one:OE>
-        <one:Table bordersVisible="false">
-          <one:Columns>
-            <one:Column index="0" width="660" />
-          </one:Columns>
-          <one:Row>
-            <one:Cell shadingColor="#BFBFBF">
-              <one:OEChildren>
-                <one:OE quickStyleIndex="10">
-                  <one:T><![CDATA[]]></one:T>
-                </one:OE>
-              </one:OEChildren>
-            </one:Cell>
-          </one:Row>
-        </one:Table>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[]]></one:T>
       </one:OE>
       <one:OE quickStyleIndex="7">
         <one:T><![CDATA[Footnoted claim<span style='vertical-align:super'>1</span>.]]></one:T>

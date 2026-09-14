@@ -255,6 +255,20 @@ namespace Md2OneNote.Core.Tests
         }
 
         [Fact]
+        public void A_thematic_break_is_an_empty_paragraph_not_a_shaded_table()
+        {
+            // The one-cell shaded table that stood in for a rule showed up in OneNote as a small
+            // grey box (2026-09-14). A break is vertical space and nothing else.
+            var page = Convert.Page("above\n\n---\n\nbelow\n");
+
+            Assert.Empty(page.Descendants(Convert.One + "Table"));
+
+            var blocks = Convert.Body(page).ToList();
+            Assert.Equal(3, blocks.Count);
+            Assert.Equal(string.Empty, blocks[1].Element(Convert.One + "T").Value);
+        }
+
+        [Fact]
         public void An_embedded_image_is_scaled_down_to_the_content_width_but_never_up()
         {
             var parsed = Convert.Parse("![wide](wide.png)\n\n![small](small.png)");
