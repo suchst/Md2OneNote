@@ -64,10 +64,10 @@ function Invoke-Edge {
 }
 
 function Render-Size {
-    param([int] $Size, [string] $Out)
+    param([int] $Size, [string] $Out, [string] $Svg = $Source)
 
-    $html = Join-Path $work "icon-$Size.html"
-    $svgUrl = 'file:///' + ($Source -replace '\\', '/')
+    $html = Join-Path $work ([IO.Path]::GetFileNameWithoutExtension($Svg) + "-$Size.html")
+    $svgUrl = 'file:///' + ($Svg -replace '\\', '/')
     @"
 <!doctype html><html><head><meta charset="utf-8"><style>
 html,body{margin:0;padding:0;background:transparent;overflow:hidden}
@@ -161,7 +161,8 @@ Write-Host "  $ico"
 Copy-Item (Join-Path $png 'icon-32.png') (Join-Path $addInImages 'Import32.png') -Force
 Copy-Item (Join-Path $png 'icon-16.png') (Join-Path $addInImages 'Import16.png') -Force
 Copy-Item (Join-Path $png 'icon-64.png') (Join-Path $addInImages 'Logo64.png') -Force
-Write-Host "  $addInImages\Import32.png, Import16.png, Logo64.png"
+Render-Size -Size 32 -Out (Join-Path $addInImages 'About32.png') -Svg (Join-Path $brand 'about.svg')
+Write-Host "  $addInImages\Import32.png, Import16.png, Logo64.png, About32.png"
 
 $previewHtml = Join-Path $brand 'social-preview.html'
 if (Test-Path $previewHtml) {

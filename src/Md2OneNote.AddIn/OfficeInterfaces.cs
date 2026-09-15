@@ -114,12 +114,13 @@ namespace Md2OneNote.AddIn
         void OnImportClicked([In, MarshalAs(UnmanagedType.IDispatch)] object control);
 
         /// <summary>
-        /// The <c>loadImage</c> callback named on <c>customUI</c>: an <c>IPictureDisp</c> for
-        /// each <c>image</c> attribute in <c>Ribbon.xml</c>.
+        /// The <c>loadImage</c> callback named on <c>customUI</c>: a stream of PNG bytes for each
+        /// <c>image</c> attribute in <c>Ribbon.xml</c>. OneNote takes <c>IStream</c> here, not the
+        /// <c>IPictureDisp</c> the other Office applications document (see RibbonImages).
         /// </summary>
         [DispId(2)]
-        [return: MarshalAs(UnmanagedType.IDispatch)]
-        object LoadImage([In, MarshalAs(UnmanagedType.BStr)] string imageId);
+        [return: MarshalAs(UnmanagedType.Interface)]
+        System.Runtime.InteropServices.ComTypes.IStream LoadImage([In, MarshalAs(UnmanagedType.BStr)] string imageId);
 
         [DispId(3)]
         void OnAboutClicked([In, MarshalAs(UnmanagedType.IDispatch)] object control);

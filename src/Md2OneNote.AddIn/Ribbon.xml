@@ -23,8 +23,8 @@
 
           <button id="Md2OneNoteAbout"
                   label="About"
-                  size="normal"
-                  imageMso="Info"
+                  size="large"
+                  image="About32"
                   onAction="OnAboutClicked"
                   screentip="About Md2OneNote"
                   supertip="Version, links, the log folder, and a diagnostic bundle for bug reports." />

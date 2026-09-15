@@ -131,17 +131,21 @@ namespace Md2OneNote.AddIn
         // Office PIA we deliberately do not reference. Office invokes these by name over IDispatch,
         // so the static type of the parameter is never checked.
 
-        public object LoadImage(string imageId)
+        public System.Runtime.InteropServices.ComTypes.IStream LoadImage(string imageId)
         {
             try
             {
-                var picture = RibbonImages.Load(imageId);
-                if (picture == null)
+                var stream = RibbonImages.Load(imageId);
+                if (stream == null)
                 {
                     _log.Error("Ribbon asked for an image that is not embedded: " + imageId, null);
                 }
+                else
+                {
+                    _log.Info("LoadImage(" + imageId + ")");
+                }
 
-                return picture;
+                return stream;
             }
             catch (Exception ex)
             {
