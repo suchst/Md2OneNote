@@ -21,9 +21,14 @@
                   screentip="Import Markdown files as OneNote pages"
                   supertip="Creates one page per selected .md file in the current section." />
 
+          <separator id="Md2OneNoteSeparator" />
+
+          <!-- Icon only, small: the label is the tooltip. A labelled small button next to one
+               large button floated alone at the top of an empty column (2026-09-15). -->
           <button id="Md2OneNoteAbout"
                   label="About"
-                  size="large"
+                  showLabel="false"
+                  size="normal"
                   image="About32"
                   onAction="OnAboutClicked"
                   screentip="About Md2OneNote"

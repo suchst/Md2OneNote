@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- The About button: an information mark in the product colour. Rendered by tools\make-icons.ps1. -->
-  <circle cx="32" cy="32" r="28" fill="#7719AA"/>
-  <circle cx="32" cy="19" r="5" fill="#FFFFFF"/>
-  <path fill="#FFFFFF" d="M24 27h12v18h5v6H23v-6h5V33h-4z"/>
+  <!-- The About button: a thin outline information mark, light enough to sit as a small
+       icon-only button next to a separator. Rendered by tools\make-icons.ps1. -->
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#7719AA" stroke-width="5"/>
+  <circle cx="32" cy="20" r="3.5" fill="#7719AA"/>
+  <path fill="#7719AA" d="M27 27h8v17h4v5H25v-5h4V32h-2z"/>
 </svg>
