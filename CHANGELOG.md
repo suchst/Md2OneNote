@@ -6,6 +6,10 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-preview.1] - 2026-09-15
+
+First public preview. Not code-signed yet: Windows SmartScreen will warn when the installer runs.
+
 ### Added
 - Import one or more Markdown files as pages in the current OneNote section, from a button on
   the Insert tab.
@@ -24,4 +28,5 @@ All notable changes to Md2OneNote are recorded here. The format follows
   a diagnostic bundle.
 - Per-user install and uninstall without administrator rights.
 
-[Unreleased]: https://github.com/suchst/Md2OneNote/commits/main
+[Unreleased]: https://github.com/suchst/Md2OneNote/compare/v1.0.0-preview.1...HEAD
+[1.0.0-preview.1]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.1
