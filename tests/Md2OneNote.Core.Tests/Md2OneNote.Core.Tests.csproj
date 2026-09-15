@@ -5,8 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Golden\**\*" />
-    <None Include="Samples\**\*" />
+    <!-- Copied next to the assembly for CI builds, where source paths are mapped away
+         (GoldenFileTests.Directory). Locally the source tree is used. -->
+    <None Include="Golden\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Samples\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

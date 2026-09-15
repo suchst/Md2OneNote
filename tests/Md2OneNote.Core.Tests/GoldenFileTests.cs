@@ -71,11 +71,23 @@ namespace Md2OneNote.Core.Tests
         /// Resolved from the source tree, not the output folder, so that a regenerated golden is a
         /// reviewable change in the repository rather than a file in bin.
         /// </summary>
+        /// <remarks>
+        /// A CI build (<c>ContinuousIntegrationBuild</c>) maps source paths to <c>/_/</c>, so the
+        /// caller path points nowhere there; the project copies both folders next to the test
+        /// assembly for that case. Read-only: a missing golden on CI fails instead of being
+        /// written into bin.
+        /// </remarks>
         private static string Directory(string name, [CallerFilePath] string callerFile = null)
         {
-            var path = Path.Combine(Path.GetDirectoryName(callerFile), name);
-            System.IO.Directory.CreateDirectory(path);
-            return path;
+            var source = Path.GetDirectoryName(callerFile);
+            if (!string.IsNullOrEmpty(source) && System.IO.Directory.Exists(source))
+            {
+                var path = Path.Combine(source, name);
+                System.IO.Directory.CreateDirectory(path);
+                return path;
+            }
+
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
         }
     }
 }
