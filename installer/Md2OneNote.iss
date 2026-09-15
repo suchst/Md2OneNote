@@ -65,29 +65,41 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "{#Payload}\*"; DestDir: "{app}\bin"; Excludes: "register.ps1"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
-; COM class, hosted out of process in the system surrogate (docs\IMPLEMENTATION.md §10).
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}"; ValueType: string; ValueName: ""; ValueData: "{#ClassName}"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}"; ValueType: string; ValueName: "AppID"; ValueData: "{#ClsId}"
+; The COM class, hosted out of process in the system surrogate (docs\IMPLEMENTATION.md §10).
+;
+; Written to BOTH registry views. Setup is a 32-bit program and HKCU\Software\Classes\CLSID is
+; one of the keys Windows redirects for 32-bit code, so a plain HKCU write lands under
+; WOW6432Node, where a 64-bit OneNote never looks (found 2026-09-15). HKCU64 is what 64-bit
+; OneNote reads, HKCU32 what a 32-bit OneNote reads; both are served from one AnyCPU DLL.
+; AppID, the ProgId and the OneNote AddIns key are not redirected and are written once.
+#define ClassIndex
+#sub ClassKeys
+  ; Iteration 0 is the 64-bit view, only where one exists (HKCU64 errors on 32-bit Windows);
+  ; iteration 1 is the 32-bit view: WOW6432Node on 64-bit Windows, the plain key on 32-bit.
+  #define ClassRoot (ClassIndex == 0 ? "HKCU64" : "HKCU32")
+  #define ClassCheck (ClassIndex == 0 ? "; Check: IsWin64" : "")
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}"; ValueType: string; ValueName: ""; ValueData: "{#ClassName}"; Flags: uninsdeletekey{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}"; ValueType: string; ValueName: "AppID"; ValueData: "{#ClsId}"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "{#ClassName}"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "{#AssemblyName}"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "{app}\bin\Md2OneNote.AddIn.dll"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "Class"; ValueData: "{#ClassName}"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "Assembly"; ValueData: "{#AssemblyName}"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "CodeBase"; ValueData: "{app}\bin\Md2OneNote.AddIn.dll"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\ProgId"; ValueType: string; ValueName: ""; ValueData: "{#ProgId}"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\VersionIndependentProgID"; ValueType: string; ValueName: ""; ValueData: "{#ProgId}"{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\Implemented Categories\{#ManagedCategory}"; ValueType: none{#ClassCheck}
+Root: {#ClassRoot}; Subkey: "Software\Classes\CLSID\{#ClsId}\Programmable"; ValueType: none{#ClassCheck}
+#endsub
+#for {ClassIndex = 0; ClassIndex < 2; ClassIndex++} ClassKeys
+
 Root: HKCU; Subkey: "Software\Classes\AppID\{#ClsId}"; ValueType: string; ValueName: "DllSurrogate"; ValueData: ""; Flags: uninsdeletekey
-
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "{#ClassName}"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "{#AssemblyName}"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "{app}\bin\Md2OneNote.AddIn.dll"
-
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "Class"; ValueData: "{#ClassName}"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "Assembly"; ValueData: "{#AssemblyName}"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\InprocServer32\{#FileVersion}"; ValueType: string; ValueName: "CodeBase"; ValueData: "{app}\bin\Md2OneNote.AddIn.dll"
-
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\ProgId"; ValueType: string; ValueName: ""; ValueData: "{#ProgId}"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\VersionIndependentProgID"; ValueType: string; ValueName: ""; ValueData: "{#ProgId}"
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\Implemented Categories\{#ManagedCategory}"; ValueType: none
-Root: HKCU; Subkey: "Software\Classes\CLSID\{#ClsId}\Programmable"; ValueType: none
 
 Root: HKCU; Subkey: "Software\Classes\{#ProgId}"; ValueType: string; ValueName: ""; ValueData: "{#ClassName}"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\{#ProgId}\CLSID"; ValueType: string; ValueName: ""; ValueData: "{#ClsId}"

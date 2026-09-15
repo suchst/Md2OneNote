@@ -431,10 +431,17 @@ verified 2026-09-13 against the working OneMore registration, which has the same
 for a few seconds after OneNote exits).
 
 Installer: `installer/Md2OneNote.iss` (Inno Setup 6, `PrivilegesRequired=lowest`). Its
-`[Registry]` section is the script above line for line, with `uninsdeletekey` on the four root
+`[Registry]` section writes the same keys as the script above, with `uninsdeletekey` on the root
 keys; it refuses to run while OneNote or the surrogate is alive, clears `Resiliency\DisabledItems`
 on install (NFR-3), and reports a missing WebView2 runtime without downloading anything. The two
-must be kept identical so either uninstaller can undo the other's install.
+must be kept in step so either uninstaller can undo the other's install.
+
+**The CLSID subtree is written to both registry views.** Setup is a 32-bit program and
+`HKCU\Software\Classes\CLSID` is a redirected key, so a plain write from it lands under
+`WOW6432Node`, invisible to 64-bit OneNote (found 2026-09-15: every other key was right and the
+add-in was simply absent). The installer therefore writes the class under `HKCU64` and `HKCU32`;
+`register.ps1`, run from 64-bit PowerShell, writes the 64-bit view only. `tools/verify-install.ps1
+-Installed` / `-Removed` checks every key, both views, and the files.
 
 ---
 
