@@ -509,8 +509,8 @@ Flowchart and sequence confirmed in OneNote on 2026-09-14; the rest share the sa
 ### Phase 5 — Additional formats and polish
 
 - [ ] Graphviz, Vega-Lite, Chart.js, KaTeX through the same shell
-- [ ] Multi-file import with progress and summary — the import runs for any number of files and
-      ends with a summary; the modeless progress form of §9.3 is still to build
+- [x] Multi-file import with progress and summary — any number of files, a modeless progress
+      window with Cancel on its own thread (`ProgressWindow`), and a summary at the end
 - [x] Re-import via `one:Meta` hash matching — unchanged files are skipped, or re-imported as a
       superseding page after one confirmation (REQUIREMENTS.md §3.3)
 - [x] Inno Setup installer (`installer/Md2OneNote.iss`, compiled by `tools/build-release.ps1`

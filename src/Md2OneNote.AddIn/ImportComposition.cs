@@ -33,12 +33,20 @@ namespace Md2OneNote.AddIn
         /// Asked once, with the number of files skipped as unchanged, when there were any; true
         /// runs those files again as superseding pages. Null never asks.
         /// </param>
+        /// <param name="ui">
+        /// The progress window, or null for none; the log always receives progress as well.
+        /// </param>
+        /// <param name="cancellation">
+        /// The user's Cancel. Pages already created are kept and reported (DESIGN.md §10).
+        /// </param>
         public static string Run(
             OneNoteGateway gateway,
             string[] paths,
             string toolVersion,
             FileLogger log,
-            Func<int, bool> askReimport)
+            Func<int, bool> askReimport,
+            IImportProgress ui,
+            CancellationToken cancellation)
         {
             var strings = FallbackStringCatalog.Instance;
 
@@ -80,22 +88,27 @@ namespace Md2OneNote.AddIn
                     strings);
 
                 var options = ImportOptions.CreateDefault(toolVersion, new ParseOptions(languages));
-                var progress = new LoggingProgress(log);
+                IImportProgress progress = new LoggingProgress(log);
+                if (ui != null)
+                {
+                    progress = new FanOutProgress(progress, ui);
+                }
 
                 var summary = service
-                    .ImportAsync(paths, options, progress, CancellationToken.None)
+                    .ImportAsync(paths, options, progress, cancellation)
                     .GetAwaiter()
                     .GetResult();
 
                 // Unchanged files were skipped (FR-19). The skip is cheap — nothing was parsed or
                 // rendered — so asking afterwards costs nothing, and the second pass is just the
-                // skipped files with the flag on.
+                // skipped files with the flag on. Not after a Cancel: the user asked to stop.
                 var skipped = SkippedPaths(summary);
-                if (skipped.Length > 0 && askReimport != null && askReimport(skipped.Length))
+                if (skipped.Length > 0 && !cancellation.IsCancellationRequested
+                    && askReimport != null && askReimport(skipped.Length))
                 {
                     log.Info("Re-importing " + skipped.Length + " unchanged file(s) at the user's request.");
                     var again = service
-                        .ImportAsync(skipped, options.WithReimportUnchanged(true), progress, CancellationToken.None)
+                        .ImportAsync(skipped, options.WithReimportUnchanged(true), progress, cancellation)
                         .GetAwaiter()
                         .GetResult();
                     summary = Merge(summary, again);
@@ -191,10 +204,50 @@ namespace Md2OneNote.AddIn
             }
         }
 
+        /// <summary>Delivers each progress call to several sinks; each is guarded on its own.</summary>
+        private sealed class FanOutProgress : IImportProgress
+        {
+            private readonly IImportProgress[] _sinks;
+
+            public FanOutProgress(params IImportProgress[] sinks)
+            {
+                _sinks = sinks;
+            }
+
+            public void FileStarted(int index, int total, string path)
+            {
+                Each(s => s.FileStarted(index, total, path));
+            }
+
+            public void Step(string localizedMessage)
+            {
+                Each(s => s.Step(localizedMessage));
+            }
+
+            public void FileFinished(FileResult result)
+            {
+                Each(s => s.FileFinished(result));
+            }
+
+            private void Each(Action<IImportProgress> call)
+            {
+                foreach (var sink in _sinks)
+                {
+                    try
+                    {
+                        call(sink);
+                    }
+                    catch (Exception)
+                    {
+                        // The contract: a progress sink never fails an import.
+                    }
+                }
+            }
+        }
+
         /// <summary>
-        /// Progress goes to the log for now. A modeless progress form is IMPLEMENTATION.md §9.3's
-        /// ask and arrives with multi-file polish; the contract says never throw, and a logger
-        /// that swallows its own failures is the one sink that can promise that today.
+        /// Progress in the log, always: it is what a bug report carries, and a logger that
+        /// swallows its own failures is a sink that can promise never to throw.
         /// </summary>
         private sealed class LoggingProgress : IImportProgress
         {

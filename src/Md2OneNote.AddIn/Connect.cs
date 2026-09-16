@@ -165,13 +165,23 @@ namespace Md2OneNote.AddIn
                     return;
                 }
 
-                var paths = PickMarkdownFiles(OneNoteWindow());
+                var owner = OneNoteWindow();
+                var paths = PickMarkdownFiles(owner);
                 if (paths.Length == 0)
                 {
                     return;
                 }
 
-                Say(ImportComposition.Run(_gateway, paths, Version(), _log, AskReimport));
+                // The progress window lives on its own thread and is closed before the summary,
+                // so the summary is never behind it.
+                string report;
+                using (var progress = new ProgressWindow(_log))
+                {
+                    progress.Show(owner);
+                    report = ImportComposition.Run(_gateway, paths, Version(), _log, AskReimport, progress, progress.Token);
+                }
+
+                Say(report);
             });
         }
 

@@ -6,6 +6,11 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- A progress window during import: which file of how many, which step, and a Cancel button.
+  Cancelling stops after the current file; pages already created are kept and listed in the
+  summary.
+
 ## [1.0.0-preview.1] - 2026-09-15
 
 First public preview. Not code-signed yet: Windows SmartScreen will warn when the installer runs.

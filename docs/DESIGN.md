@@ -689,7 +689,10 @@ Phases 0–4 of `IMPLEMENTATION.md` §11 are built and in daily use on the autho
 single- and multi-file import, re-import with `one:Meta` matching, Mermaid through WebView2.
 What this design describes and the code does not yet have:
 
-1. The modeless progress form of §4 and §10 — imports currently run with no UI until the summary.
+1. The `ImportHost` thread of §4. The progress form exists (`ProgressWindow`, on its own pump
+   thread, owning the cancellation source as §10 says), but the import loop still runs on the
+   ribbon callback's thread, so OneNote's own window is busy during an import. Moving the loop
+   means marshalling the `Application` proxy to another apartment and is the remaining part of §4.
 2. The additional diagram formats of §8.4.
 3. Code signing of the installer and binaries (REQUIREMENTS.md NFR-13); until then releases are
    previews.
