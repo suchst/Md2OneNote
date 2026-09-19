@@ -6,6 +6,10 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-preview.2] - 2026-09-19
+
+Still unsigned: Windows SmartScreen will warn when the installer runs.
+
 ### Added
 - A progress window during import: which file of how many, which step, and a Cancel button.
   Cancelling stops after the current file; pages already created are kept and listed in the
@@ -33,5 +37,6 @@ First public preview. Not code-signed yet: Windows SmartScreen will warn when th
   a diagnostic bundle.
 - Per-user install and uninstall without administrator rights.
 
-[Unreleased]: https://github.com/suchst/Md2OneNote/compare/v1.0.0-preview.1...HEAD
+[Unreleased]: https://github.com/suchst/Md2OneNote/compare/v1.0.0-preview.2...HEAD
+[1.0.0-preview.2]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.2
 [1.0.0-preview.1]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.1
