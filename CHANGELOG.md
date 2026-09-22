@@ -6,6 +6,11 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- The release workflow signs the add-in's assemblies and the installer through SignPath when
+  the repository holds SignPath credentials, and publishes unsigned otherwise, saying so in the
+  release notes. Releases stay unsigned until SignPath Foundation approves the project.
+
 ## [1.0.0-preview.3] - 2026-09-22
 
 Still unsigned: Windows SmartScreen will warn when the installer runs.

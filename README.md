@@ -82,6 +82,24 @@ log and cache folder too.
   shares or URLs are refused, and diagrams render in a sandboxed WebView2 with every request
   blocked. See [SECURITY.md](SECURITY.md).
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by
+[SignPath Foundation](https://signpath.org). The certificate is applied from the first release
+after SignPath Foundation's approval; earlier preview releases are unsigned, and their release
+notes say so.
+
+- Only the release workflow signs, from a tagged commit of this repository, so every signed
+  binary can be traced back to its source. Signed are the add-in's own assemblies
+  (`Md2OneNote.*.dll`) and the installer; the third-party libraries ship as their authors
+  publish them.
+- Every signing request is approved by hand before the certificate is applied.
+- Roles: Stanislav Sucharda is the author, reviewer and approver. Changes from anyone else
+  arrive as pull requests and are reviewed before they are merged.
+
+This program will not transfer any information to other networked systems unless specifically
+requested by the user or the person installing or operating it.
+
 ## Tested with
 
 | OneNote | Windows | Result |

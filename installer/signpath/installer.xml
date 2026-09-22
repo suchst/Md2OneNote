@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SignPath artifact configuration "installer" (docs/RELEASING.md, "Signing").
+
+  The release workflow uploads the compiled Inno Setup installer, already containing the signed
+  assemblies, as one GitHub Actions artifact, which is a zip with the single exe inside.
+  product-name comes from the installer's version resource (AppName in installer/Md2OneNote.iss).
+
+  Paste this into the SignPath project as the artifact configuration with the slug "installer".
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="Md2OneNote-*-setup.exe" product-name="Md2OneNote">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

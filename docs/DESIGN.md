@@ -695,8 +695,9 @@ single- and multi-file import, re-import with `one:Meta` matching, Mermaid throu
 What this design describes and the code does not yet have:
 
 1. The additional diagram formats of §8.4.
-2. Code signing of the installer and binaries (REQUIREMENTS.md NFR-13); until then releases are
-   previews.
+2. Code signing of the installer and binaries (REQUIREMENTS.md NFR-13). The release workflow
+   has the SignPath steps (`docs/RELEASING.md`, "Signing"); they run once SignPath Foundation
+   has approved the project. Until then releases are previews.
 
 Built since this section was first written (2026-09-14): the per-user Inno Setup installer
 (`installer/Md2OneNote.iss`), which also serves as the repair path of §12 — re-running it

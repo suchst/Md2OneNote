@@ -2,16 +2,25 @@ name: Release
 
 # Runs when a version tag is pushed. The tag must equal <Version> in Directory.Build.props;
 # the procedure is in docs/RELEASING.md.
+#
+# Signing is switched on by three repository settings (docs/RELEASING.md, "Signing"): the
+# variables SIGNPATH_ORGANIZATION_ID and SIGNPATH_PROJECT_SLUG and the secret SIGNPATH_API_TOKEN.
+# Without them every signing step is skipped and the release is published unsigned, which the
+# release notes say.
 on:
   push:
     tags: ['v*']
 
 permissions:
-  contents: write
+  contents: write   # create the release
+  actions: read     # SignPath fetches the unsigned files from this run's artifacts
+  id-token: write   # SignPath checks where the build came from
 
 jobs:
   release:
     runs-on: windows-latest
+    env:
+      SIGN: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && vars.SIGNPATH_PROJECT_SLUG != '' && secrets.SIGNPATH_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -30,10 +39,97 @@ jobs:
           }
           "VERSION=$version" >> $env:GITHUB_ENV
           "PRERELEASE=$($version.Contains('-'))" >> $env:GITHUB_ENV
+          "Signing: $env:SIGN"
 
-      - name: Build, test, package
+      - name: Build and test
         shell: pwsh
-        run: .\tools\build-release.ps1
+        run: .\tools\build-release.ps1 -Stage Build
+
+      # ---- signing, round one: the add-in's own assemblies ---------------------------------
+      # Only Md2OneNote.*.dll go to SignPath; the third-party libraries in the payload are not
+      # ours to sign. The upload is a zip, which is what installer/signpath/assemblies.xml expects.
+      - name: Upload the unsigned assemblies for SignPath
+        if: env.SIGN == 'true'
+        id: unsigned-assemblies
+        uses: actions/upload-artifact@v5
+        with:
+          name: unsigned-assemblies
+          path: artifacts/payload/Md2OneNote.*.dll
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign the assemblies
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: assemblies
+          github-artifact-id: ${{ steps.unsigned-assemblies.outputs.artifact-id }}
+          wait-for-completion: true
+          # The approver confirms each request by hand in SignPath; give them an hour.
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: artifacts/signed/assemblies
+
+      - name: Put the signed assemblies into the payload
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          $signed = @(Get-ChildItem artifacts/signed/assemblies -Filter 'Md2OneNote.*.dll' -Recurse)
+          $expected = @(Get-ChildItem artifacts/payload -Filter 'Md2OneNote.*.dll').Count
+          if ($signed.Count -ne $expected) { throw "SignPath returned $($signed.Count) assemblies, expected $expected." }
+          foreach ($file in $signed) {
+            $signature = Get-AuthenticodeSignature $file.FullName
+            if ($signature.Status -ne 'Valid') { throw "$($file.Name): signature is $($signature.Status)." }
+            Copy-Item $file.FullName -Destination artifacts/payload -Force
+            "$($file.Name): signed by $($signature.SignerCertificate.Subject)"
+          }
+
+      - name: Package the zip and the installer
+        shell: pwsh
+        run: .\tools\build-release.ps1 -Stage Package
+
+      # ---- signing, round two: the installer -----------------------------------------------
+      - name: Upload the unsigned installer for SignPath
+        if: env.SIGN == 'true'
+        id: unsigned-installer
+        uses: actions/upload-artifact@v5
+        with:
+          name: unsigned-installer
+          path: artifacts/Md2OneNote-*-setup.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign the installer
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: artifacts/signed/installer
+
+      - name: Replace the installer with the signed one
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          $signed = Get-ChildItem artifacts/signed/installer -Filter 'Md2OneNote-*-setup.exe' -Recurse | Select-Object -First 1
+          if (-not $signed) { throw 'SignPath returned no installer.' }
+          $signature = Get-AuthenticodeSignature $signed.FullName
+          if ($signature.Status -ne 'Valid') { throw "$($signed.Name): signature is $($signature.Status)." }
+          Copy-Item $signed.FullName -Destination artifacts -Force
+          "$($signed.Name): signed by $($signature.SignerCertificate.Subject)"
+
+      - name: Write the checksums
+        shell: pwsh
+        run: .\tools\build-release.ps1 -Stage Checksums
 
       - name: Release notes from CHANGELOG.md
         shell: pwsh
@@ -42,10 +138,16 @@ jobs:
           $pattern = "(?s)## \[$([regex]::Escape($env:VERSION))\][^\n]*\n(.*?)(?=\n## \[|\z)"
           $m = [regex]::Match($changelog, $pattern)
           $notes = if ($m.Success) { $m.Groups[1].Value.Trim() } else { "See CHANGELOG.md." }
-          if ($env:PRERELEASE -eq 'True') {
-            $notes = "**Preview build.** Not yet code-signed: Windows SmartScreen will warn when you run it.`n`n" + $notes
+          $lead = @()
+          if ($env:PRERELEASE -eq 'True') { $lead += '**Preview build.**' }
+          if ($env:SIGN -ne 'true') {
+            $lead += 'Not code-signed: Windows SmartScreen will warn when you run it. The `SHA256SUMS` file lets you check the download.'
           }
+          if ($lead) { $notes = ($lead -join ' ') + "`n`n" + $notes }
           $notes += "`n`n---`nIf Md2OneNote saves you time, you can [support the project](https://github.com/sponsors/suchst)."
+          if ($env:SIGN -eq 'true') {
+            $notes += "`n`nFree code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org)."
+          }
           Set-Content -Path artifacts/notes.md -Value $notes -Encoding utf8
 
       - name: Create the GitHub release

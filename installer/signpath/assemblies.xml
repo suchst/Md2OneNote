@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SignPath artifact configuration "assemblies" (docs/RELEASING.md, "Signing").
+
+  The release workflow uploads the add-in's own assemblies, Md2OneNote.*.dll from the payload,
+  as one GitHub Actions artifact, which is a zip. The third-party libraries in the payload are
+  not uploaded: they are not ours to sign. product-name is enforced so that nothing but a
+  Md2OneNote build can be signed under this configuration.
+
+  Paste this into the SignPath project as the artifact configuration with the slug "assemblies".
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="Md2OneNote.*.dll" max-matches="unbounded" product-name="Md2OneNote">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

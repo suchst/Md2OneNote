@@ -94,7 +94,7 @@ README.md, LICENSE, CHANGELOG.md, CONTRIBUTING.md, SECURITY.md, THIRD-PARTY-NOTI
 │   └── Directory.Build.props      # test packages and binding redirects, shared
 ├── tools/
 │   ├── register.ps1               # builds (or takes a release payload), deploys, registers per-user
-│   └── build-release.ps1          # Release build, tests, zip + SHA256SUMS under artifacts/
+│   └── build-release.ps1          # Release build, tests, zip, installer, SHA256SUMS under artifacts/, in stages
 └── docs/
     ├── REQUIREMENTS.md, DESIGN.md, IMPLEMENTATION.md (this file), RELEASING.md
     └── page-schema-notes.md       # Phase 0 findings — authoritative over §5
@@ -520,7 +520,8 @@ Flowchart and sequence confirmed in OneNote on 2026-09-14; the rest share the sa
 - [x] Inno Setup installer (`installer/Md2OneNote.iss`, compiled by `tools/build-release.ps1`
       and the release workflow); `tools/register.ps1` remains the development path
 - [x] About dialog with environment report and diagnostic bundle (NFR-17)
-- [ ] Code signing (NFR-13) — SignPath Foundation application pending a public repository
+- [ ] Code signing (NFR-13) — the release workflow signs through SignPath once the repository
+      settings of `docs/RELEASING.md` exist; the SignPath Foundation application is pending
 
 ---
 

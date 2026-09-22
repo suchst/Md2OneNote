@@ -24,7 +24,8 @@ git push origin main vX.Y.Z
 The Release workflow then:
 
 - checks the tag against `<Version>`,
-- runs `tools/build-release.ps1` (Release build, all tests, zip, `SHA256SUMS`),
+- runs `tools/build-release.ps1` stage by stage (Release build, all tests, zip, installer,
+  `SHA256SUMS`), signing in between when signing is set up (see below),
 - takes the release notes from the matching `CHANGELOG.md` section,
 - creates the GitHub release, marked as a pre-release when the version has a suffix.
 
@@ -43,7 +44,48 @@ major bump, because the uninstaller of the previous version does not know about 
 
 ## Signing
 
-Releases are not signed yet. When signing is set up (SignPath or Azure Trusted Signing), the
-signing step goes between "Build, test, package" and "Create the GitHub release" in
-`.github/workflows/release.yml`, and this section says which files are signed and how to verify
-(`signtool verify /pa /v`).
+The release workflow signs through [SignPath](https://signpath.io) when the repository has
+these three settings (Settings > Secrets and variables > Actions), and publishes unsigned
+otherwise, saying so in the release notes:
+
+| Setting | Kind | Value |
+|---|---|---|
+| `SIGNPATH_ORGANIZATION_ID` | variable | the organization id shown in SignPath |
+| `SIGNPATH_PROJECT_SLUG` | variable | the slug of the SignPath project |
+| `SIGNPATH_API_TOKEN` | secret | an API token of a SignPath user with the Submitter role |
+
+One-time setup in SignPath, once SignPath Foundation has approved the application:
+
+1. A project for this repository, with GitHub Actions linked as its trusted build system (the
+   SignPath GitHub App installed on the repository) and origin verification on.
+2. Two artifact configurations with the slugs `assemblies` and `installer`, from
+   `installer/signpath/assemblies.xml` and `installer/signpath/installer.xml`.
+3. The `release-signing` policy, which SignPath Foundation creates, with the maintainer as
+   approver and the token's user as submitter.
+
+What happens on a tag, in `.github/workflows/release.yml`:
+
+1. `build-release.ps1 -Stage Build`: Release build, tests, `artifacts/payload`.
+2. `Md2OneNote.*.dll` from the payload go to SignPath as one run artifact. The workflow waits
+   up to an hour while the approver confirms the request in SignPath (an email arrives). Each
+   returned file is checked with `Get-AuthenticodeSignature` and replaces the unsigned one.
+3. `-Stage Package`: the zip and the installer are built from the signed payload.
+4. The installer goes to SignPath the same way, with a second approval, and is replaced by the
+   signed file.
+5. `-Stage Checksums`, then the GitHub release.
+
+Not signed: the third-party libraries in the payload (Markdig, ColorCode, WebView2, the
+`System.*` shims), which ship as their authors publish them, and the uninstaller Inno Setup
+extracts at install time. Neither reaches Windows SmartScreen, which only looks at files that
+were downloaded.
+
+To check a download:
+
+```powershell
+Get-AuthenticodeSignature .\Md2OneNote-X.Y.Z-setup.exe | Format-List Status, SignerCertificate
+```
+
+`signtool verify /pa /v Md2OneNote-X.Y.Z-setup.exe` does the same with the Windows SDK.
+
+The README's "Code signing policy" section carries the wording SignPath Foundation asks for;
+keep it when editing the README.
