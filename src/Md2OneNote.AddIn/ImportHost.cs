@@ -28,6 +28,7 @@ namespace Md2OneNote.AddIn
         private readonly object _gate = new object();
         private Thread _thread;
         private ProgressWindow _progress;
+        private volatile bool _stopping;
 
         public ImportHost(FileLogger log)
         {
@@ -98,6 +99,7 @@ namespace Md2OneNote.AddIn
             }
 
             _log.Info("Shutting down while an import runs; cancelling it.");
+            _stopping = true;
             if (progress != null)
             {
                 progress.Cancel();
@@ -120,6 +122,14 @@ namespace Md2OneNote.AddIn
                 {
                     progress.Show(owner);
                     report = work(progress, progress.Token);
+                }
+
+                // OneNote is gone when the host is stopping: a report box would come from the
+                // surrogate with no owner, after the window the user closed. The log has it.
+                if (_stopping)
+                {
+                    _log.Info("Import stopped for shutdown; report not shown: " + report.Replace("\r\n", " | "));
+                    return;
                 }
 
                 say(report);
