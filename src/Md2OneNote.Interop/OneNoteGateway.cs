@@ -38,8 +38,11 @@ namespace Md2OneNote.Interop
         private const int RpcServerCallRetryLater = unchecked((int)0x8001010A);
         private const int RpcCallRejected = unchecked((int)0x80010001);
 
-        private const int MaxAttempts = 3;
-        private const int BackoffMilliseconds = 300;
+        // About ten seconds of patience. The import runs while OneNote is live, and a dialog the
+        // user opens there rejects every call for as long as it stays up; this covers a quick
+        // one, and a longer one fails the file with a message that names the cause.
+        private const int MaxAttempts = 20;
+        private const int BackoffMilliseconds = 500;
 
         private readonly IApplication _application;
 

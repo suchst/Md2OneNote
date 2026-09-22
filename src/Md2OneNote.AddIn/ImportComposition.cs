@@ -19,12 +19,11 @@ namespace Md2OneNote.AddIn
     /// asset source and index make up an import (DESIGN.md §4).
     /// </summary>
     /// <remarks>
-    /// <b>The import runs synchronously on the ribbon callback's thread.</b> That thread is the
-    /// surrogate's STA, the only apartment the <c>Application</c> proxy may be called from, and
-    /// with no diagram renderers registered <c>ImportAsync</c> never actually yields — every
-    /// await completes synchronously. When Phase 4 adds WebView2 rendering this needs a message
-    /// pump and marshalling back to this thread (IMPLEMENTATION.md §13); until then blocking is
-    /// both correct and the simplest thing that is.
+    /// <b>The import runs synchronously on the <see cref="ImportHost"/> thread</b>, an MTA
+    /// background thread, which is the apartment the <c>Application</c> proxy lives in. A
+    /// diagram render is awaited on the renderer's own STA thread and the continuation lands on
+    /// the thread pool, MTA as well, so blocking here is both correct and the simplest thing that
+    /// is; no message pump is needed on this thread.
     /// </remarks>
     internal static class ImportComposition
     {

@@ -33,8 +33,12 @@ namespace Md2OneNote.AddIn
     public sealed class Connect : IDTExtensibility2, IRibbonExtensibility, IRibbonCallbacks
     {
         private readonly FileLogger _log = FileLogger.Default();
+        private readonly ImportHost _imports;
         private object _application;
         private OneNoteGateway _gateway;
+
+        private const string AlreadyRunning =
+            "An import is already running. Wait for it to finish, or cancel it in its progress window.";
 
         /// <summary>
         /// Runs before the constructor and before any method is JIT-compiled, which is the only
@@ -67,6 +71,7 @@ namespace Md2OneNote.AddIn
 
         public Connect()
         {
+            _imports = new ImportHost(_log);
             _log.Info("Constructed.");
         }
 
@@ -104,6 +109,7 @@ namespace Md2OneNote.AddIn
         {
             try
             {
+                StopImport();
                 _gateway = null;
                 _application = null;
                 _log.Info("Disconnected");
@@ -124,6 +130,23 @@ namespace Md2OneNote.AddIn
 
         public void OnBeginShutdown(ref Array custom)
         {
+            try
+            {
+                StopImport();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("OnBeginShutdown failed", ex);
+            }
+        }
+
+        /// <summary>
+        /// OneNote is going away: a running import stops after its current file, and gets ten
+        /// seconds to do so before OneNote's shutdown continues without it.
+        /// </summary>
+        private void StopImport()
+        {
+            _imports.Shutdown(TimeSpan.FromSeconds(10));
         }
 
         // ---- ribbon callbacks (IRibbonCallbacks) --------------------------------------------
@@ -165,6 +188,14 @@ namespace Md2OneNote.AddIn
                     return;
                 }
 
+                // Checked before the picker so nobody chooses files for nothing; TryStart checks
+                // again, atomically, for the click that lands in between.
+                if (_imports.IsRunning)
+                {
+                    Say(AlreadyRunning);
+                    return;
+                }
+
                 var owner = OneNoteWindow();
                 var paths = PickMarkdownFiles(owner);
                 if (paths.Length == 0)
@@ -172,16 +203,20 @@ namespace Md2OneNote.AddIn
                     return;
                 }
 
-                // The progress window lives on its own thread and is closed before the summary,
-                // so the summary is never behind it.
-                string report;
-                using (var progress = new ProgressWindow(_log))
-                {
-                    progress.Show(owner);
-                    report = ImportComposition.Run(_gateway, paths, Version(), _log, AskReimport, progress, progress.Token);
-                }
+                // From here on the import runs on its own thread and this callback returns, which
+                // is what keeps OneNote usable meanwhile (DESIGN.md §4). The report and the
+                // re-import question come from that thread, owned by OneNote's window as before.
+                var gateway = _gateway;
+                var version = Version();
+                var started = _imports.TryStart(
+                    owner,
+                    (progress, cancellation) => ImportComposition.Run(gateway, paths, version, _log, AskReimport, progress, cancellation),
+                    Say);
 
-                Say(report);
+                if (!started)
+                {
+                    Say(AlreadyRunning);
+                }
             });
         }
 
@@ -325,13 +360,19 @@ namespace Md2OneNote.AddIn
 
                 try
                 {
-                    Say("Md2OneNote hit an error:\r\n\r\n" + ex.Message
-                        + "\r\n\r\nDetails are in %LOCALAPPDATA%\\Md2OneNote\\log.txt");
+                    Say(ErrorText(ex));
                 }
                 catch (Exception)
                 {
                 }
             }
+        }
+
+        /// <summary>What the user reads when something failed: the message and where the details are.</summary>
+        internal static string ErrorText(Exception ex)
+        {
+            return "Md2OneNote hit an error:\r\n\r\n" + ex.Message
+                + "\r\n\r\nDetails are in %LOCALAPPDATA%\\Md2OneNote\\log.txt";
         }
 
         /// <summary>

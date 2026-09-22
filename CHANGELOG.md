@@ -6,6 +6,13 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- OneNote stays usable during an import. The import runs on its own thread; the ribbon button
+  returns at once, and the progress window is the only thing that waits. A second Import while
+  one is running is refused with a message rather than queued.
+- A busy OneNote (a dialog open there during an import) is retried for about ten seconds
+  before the file is reported as failed, instead of one second.
+
 ## [1.0.0-preview.2] - 2026-09-19
 
 Still unsigned: Windows SmartScreen will warn when the installer runs.

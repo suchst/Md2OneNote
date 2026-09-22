@@ -8,14 +8,11 @@ namespace Md2OneNote.AddIn
 {
     /// <summary>
     /// Hosts <see cref="ProgressForm"/> on its own STA thread with a message pump, so it paints
-    /// and answers Cancel while the import runs on the ribbon callback's thread. Implements
+    /// and answers Cancel while the import runs on the <see cref="ImportHost"/> thread. Implements
     /// <see cref="IImportProgress"/> for the import service and owns the
     /// <see cref="CancellationTokenSource"/> (DESIGN.md §10).
     /// </summary>
     /// <remarks>
-    /// The import itself stays on the callback thread: that is the apartment the OneNote proxy
-    /// was handed to, and moving the loop is the larger restructuring of DESIGN.md §4. OneNote's
-    /// own window is therefore busy during an import, which is what the progress window is for.
     /// Every member is safe to call from any thread and never throws: a progress sink that fails
     /// must not fail the import (<see cref="IImportProgress"/> contract).
     /// </remarks>
@@ -33,10 +30,24 @@ namespace Md2OneNote.AddIn
             _log = log;
         }
 
-        /// <summary>Cancelled when the user clicks Cancel or closes the window.</summary>
+        /// <summary>Cancelled when the user clicks Cancel or closes the window, or the host shuts down.</summary>
         public CancellationToken Token
         {
             get { return _cancellation.Token; }
+        }
+
+        /// <summary>Cancels as if the user had; the window shows "Cancelling" until the import stops.</summary>
+        public void Cancel()
+        {
+            try
+            {
+                _cancellation.Cancel();
+                Post(f => f.ShowCancelling());
+            }
+            catch (ObjectDisposedException)
+            {
+                // Already closed: nothing left to cancel.
+            }
         }
 
         /// <summary>Shows the window, owned by OneNote's window when there is one, and returns once it is up.</summary>

@@ -31,7 +31,7 @@ graph TD
     end
 
     subgraph ADDIN["Md2OneNote.AddIn"]
-        HOST["ImportHost<br/>STA thread + message pump"]
+        HOST["ImportHost<br/>background MTA thread"]
         PROG["Progress / Summary forms"]
         COMP["Composition root"]
     end
@@ -157,17 +157,20 @@ The constraint set is awkward: WebView2 needs a UI thread with a message pump; t
 must stay responsive; OneNote's COM object is apartment-threaded; and the ribbon callback must
 return promptly or OneNote appears frozen.
 
-**Resolution:** the add-in owns one dedicated STA thread (`ImportHost`) running a WinForms message
-pump for the process lifetime. That thread owns the WebView2 instance, the progress form, and the
-import loop. Because `Application.Run` installs a `WindowsFormsSynchronizationContext`, `await`
-continuations post back to the pump — so the import loop can be `async`, and the pump stays free to
-paint progress and service the Cancel button while a diagram renders.
+**Resolution:** the ribbon callback hands the import to `ImportHost`, which runs it on a
+background thread and returns. The thread is MTA, which is the apartment OneNote's `Application`
+proxy lives in: the surrogate activates the `ThreadingModel=Both` class on an RPC thread, every
+ribbon callback arrives on one, and diagram continuations reach the gateway from the thread pool.
+Within the MTA the proxy is shared, so nothing is marshalled and the loop needs no message pump.
+The two pieces that do need one, the progress form (`ProgressWindow`) and the WebView2 renderer,
+each own an STA thread with a pump of its own, so progress paints and Cancel answers while a
+diagram renders, and neither waits on the other.
 
 ```mermaid
 sequenceDiagram
     participant U as User
     participant ON as OneNote UI thread
-    participant H as ImportHost (STA)
+    participant H as ImportHost (MTA)
     participant S as ImportService
     participant D as Diagram sandbox
     participant G as Gateway (COM)
@@ -210,7 +213,8 @@ Rules:
   the source of `RPC_E_SERVERCALL_RETRYLATER` and is handled by the gateway's retry policy, not by
   callers.
 - `async void` appears only in event handlers, per `IMPLEMENTATION.md` §14.
-- On add-in shutdown the host thread is signalled, the WebView2 disposed, and the pump exited.
+- On add-in shutdown a running import is cancelled, which stops it after the current file, and
+  given ten seconds; the thread is a background thread, so the surrogate exits regardless.
 
 ---
 
@@ -585,9 +589,10 @@ exception.
   `Failed` and a `FailureReason`, and the loop continues (FR-3).
 - **Transactionality** — the page is created only after XML generation succeeds, and content is
   submitted in a single `ReplacePageContent`. A mid-build failure leaves no page (NFR-1).
-- **Retry** — `OneNoteGateway` wraps every COM call: 3 attempts, 300 ms backoff, on
-  `RPC_E_SERVERCALL_RETRYLATER` (`0x8001010A`) only. Exhaustion surfaces as `OneNoteBusy`. Callers
-  never see a raw `COMException`.
+- **Retry** — `OneNoteGateway` wraps every COM call: 20 attempts, 500 ms backoff, on
+  `RPC_E_SERVERCALL_RETRYLATER` (`0x8001010A`) only. That is about ten seconds, enough for a
+  dialog the user opens in OneNote during an import and closes again. Exhaustion surfaces as
+  `OneNoteBusy`. Callers never see a raw `COMException`.
 - **Cancellation** — one `CancellationTokenSource` owned by the progress form. Checked between
   files, between diagrams, and passed into `RenderAsync`. Pages already created are kept and
   reported (FR-5).
@@ -642,7 +647,7 @@ filesystem diff (NFR-14).
 | D2 | Gateway cannot modify existing pages | General `UpdatePageContent(pageId, xml)` | Makes FR-21 structural. A future contributor cannot accidentally add an overwrite path without changing the interface. |
 | D3 | Renderer authors its own `QuickStyleDef` indices | Read indices from the created page skeleton | We create blank pages, so we own the defs. Removes the "indices not guaranteed" risk entirely. |
 | D4 | Page index is a cache, verified before trust | Authoritative local database of imported pages | A database desynchronizes from a notebook the user edits freely. A verified cache degrades to "create a duplicate," which is the safe direction. |
-| D5 | Single dedicated STA thread hosts both WebView2 and the import loop | Background thread + marshalling each render to the UI thread | Marshalling per diagram reintroduces the freeze it was meant to avoid. One pump keeps progress live and cancellation honest. |
+| D5 | Import loop on a plain MTA thread; WebView2 and the progress form each own an STA pump | One STA thread hosting the loop, the renderer and the form | The proxy lives in the MTA, so the loop needs no pump and no marshalling. A render is a wait on another thread that blocks nothing the user sees, and a pump that serves one window never has to share its time with a page build. |
 | D6 | Timeout ⇒ dispose and recreate the WebView2 | Race `ExecuteScriptAsync` against `Task.Delay` and continue | A runaway script keeps consuming CPU and can corrupt later renders. Only teardown actually reclaims it. |
 | D7 | Raw HTML dropped, inline HTML escaped | Sanitize with an allow-list and pass through | An allow-list is a permanent maintenance liability in a published tool. The fidelity cost is small and visible. |
 | D8 | `..` allowed with a warning; UNC rejected unconditionally | Confine strictly to the base directory | Strict confinement breaks legitimate shared-asset layouts while the genuinely dangerous case is the network path. |
@@ -689,16 +694,14 @@ Phases 0–4 of `IMPLEMENTATION.md` §11 are built and in daily use on the autho
 single- and multi-file import, re-import with `one:Meta` matching, Mermaid through WebView2.
 What this design describes and the code does not yet have:
 
-1. The `ImportHost` thread of §4. The progress form exists (`ProgressWindow`, on its own pump
-   thread, owning the cancellation source as §10 says), but the import loop still runs on the
-   ribbon callback's thread, so OneNote's own window is busy during an import. Moving the loop
-   means marshalling the `Application` proxy to another apartment and is the remaining part of §4.
-2. The additional diagram formats of §8.4.
-3. Code signing of the installer and binaries (REQUIREMENTS.md NFR-13); until then releases are
+1. The additional diagram formats of §8.4.
+2. Code signing of the installer and binaries (REQUIREMENTS.md NFR-13); until then releases are
    previews.
 
 Built since this section was first written (2026-09-14): the per-user Inno Setup installer
 (`installer/Md2OneNote.iss`), which also serves as the repair path of §12 — re-running it
 rewrites the registration and clears OneNote's disabled-items entry; the About dialog with the
-environment report and diagnostic bundle (NFR-17); the custom ribbon icon; and the release
-pipeline (`tools/build-release.ps1`, GitHub workflows).
+environment report and diagnostic bundle (NFR-17); the custom ribbon icon; the release
+pipeline (`tools/build-release.ps1`, GitHub workflows); the progress window of §10
+(`ProgressWindow`, 2026-09-17); and the `ImportHost` thread of §4 (2026-09-22), which turned out
+not to need any marshalling because the proxy lives in the MTA.

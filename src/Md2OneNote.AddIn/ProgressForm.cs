@@ -117,7 +117,11 @@ namespace Md2OneNote.AddIn
         /// <summary>Set by the owner when the import has finished and the window may go.</summary>
         public bool AllowClose { get; set; }
 
-        private void RequestCancel()
+        /// <summary>
+        /// Shows that the import is stopping, for a cancellation that came from elsewhere (the
+        /// host shutting down). Raises nothing.
+        /// </summary>
+        public void ShowCancelling()
         {
             if (IsCancelRequested)
             {
@@ -128,6 +132,16 @@ namespace Md2OneNote.AddIn
             _cancel.Enabled = false;
             _cancel.Text = "Cancelling…";
             _step.Text = "Finishing the current file, then stopping.";
+        }
+
+        private void RequestCancel()
+        {
+            if (IsCancelRequested)
+            {
+                return;
+            }
+
+            ShowCancelling();
 
             var handler = CancelRequested;
             if (handler != null)

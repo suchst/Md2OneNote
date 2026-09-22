@@ -271,7 +271,9 @@ To find the active section, call `GetHierarchy(null, HierarchyScope.hsPages, ...
 `isCurrentlyViewed="true"` attribute.
 
 **All interop calls must be wrapped in retry.** OneNote returns `COMException` with
-`RPC_E_SERVERCALL_RETRYLATER` (`0x8001010A`) when busy. Retry 3 times with a 300 ms backoff.
+`RPC_E_SERVERCALL_RETRYLATER` (`0x8001010A`) when busy. Retry with a 500 ms backoff for about ten
+seconds (20 attempts): the import runs while OneNote is live, and a dialog the user opens there
+rejects every call until it closes.
 
 ---
 
@@ -511,6 +513,8 @@ Flowchart and sequence confirmed in OneNote on 2026-09-14; the rest share the sa
 - [ ] Graphviz, Vega-Lite, Chart.js, KaTeX through the same shell
 - [x] Multi-file import with progress and summary — any number of files, a modeless progress
       window with Cancel on its own thread (`ProgressWindow`), and a summary at the end
+- [x] Import on its own thread (`ImportHost`, DESIGN.md §4) — the ribbon callback returns at
+      once and OneNote stays usable; a second Import during an import is refused with a message
 - [x] Re-import via `one:Meta` hash matching — unchanged files are skipped, or re-imported as a
       superseding page after one confirmation (REQUIREMENTS.md §3.3)
 - [x] Inno Setup installer (`installer/Md2OneNote.iss`, compiled by `tools/build-release.ps1`
@@ -553,8 +557,12 @@ surface.
 - **`numberSequence` collisions** make separate ordered lists continue each other's numbering.
 - **CDATA and escaping** interact confusingly. Escape user text as HTML, then place it inside
   CDATA — do not escape twice.
-- **WebView2 must be created on a UI thread** with a message pump. Marshal accordingly if the
-  import runs on a background thread.
+- **WebView2 must be created on a UI thread** with a message pump. The renderer owns one; the
+  import loop itself runs on a plain MTA thread and just awaits it.
+- **The `Application` proxy lives in the MTA.** `dllhost.exe` activates the `ThreadingModel=Both`
+  class on an RPC thread, so callbacks arrive on MTA threads and any MTA thread may use the proxy
+  without marshalling (`ImportHost` relies on this). The STA threads of ours, the picker, the About
+  form and the progress window, are other apartments: keep COM calls off them, as the code does.
 
 ---
 
