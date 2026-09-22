@@ -87,7 +87,7 @@ README.md, LICENSE, CHANGELOG.md, CONTRIBUTING.md, SECURITY.md, THIRD-PARTY-NOTI
 │   │   └── Rendering/             # OneNoteXmlRenderer, InlineWriter, StyleTable
 │   ├── Md2OneNote.Diagrams/       # WebView2 shell + Mermaid, DevTools capture
 │   │   ├── WebViewDiagramRenderer.cs
-│   │   └── Assets/                # shell.html, mermaid.min.js — embedded
+│   │   └── Assets/                # shell.html, mermaid.min.js, viz-global.js, katex.min.*, fonts/ — embedded
 │   ├── Md2OneNote.Interop/        # IApplication vtable interface, gateway, retry, page index
 │   └── Md2OneNote.Storage/        # the filesystem behind Core's abstractions
 ├── tests/                         # one xUnit project per assembly above, except AddIn
@@ -351,9 +351,15 @@ Mermaid config: `{ startOnLoad: false, htmlLabels: false, securityLevel: 'strict
 
 ### 8.3 Formats via the same shell
 
-`mermaid`, `dot` / `graphviz` (`@hpcc-js/wasm`), `vega-lite`, `chartjs`, and `math` (KaTeX, for
-`$$…$$` blocks). All are JS libraries loaded into the shell; adding one is a new branch in
-`renderDiagram` plus an embedded asset.
+Built: `mermaid`; `dot` / `graphviz` through Viz.js 3 (`@viz-js/viz`, `viz-global.js`, Graphviz
+as WebAssembly embedded in the script as a string, which needs `'wasm-unsafe-eval'` in the CSP);
+`math` / `katex` through KaTeX (`katex.min.js`, `katex.min.css`, the woff2 fonts under `fonts/`;
+measure only after `document.fonts.ready`). A `$$` block is parsed by Markdig's `MathBlockParser`
+alone, so inline `$…$` stays text, and reaches the shell as `math`. The list the composition root
+registers is `WebViewDiagramRenderer.Languages`; the shell's `renderDiagram` switches on the same
+names. Not built: `vega-lite`, `chartjs`. Adding one is a new branch in `renderDiagram`, an
+embedded asset (the `ShellFiles` test checks the shell's references against the manifest), a
+licence in `THIRD-PARTY-NOTICES.md` and `build-release.ps1`, and a name in `Languages`.
 
 ### 8.4 PlantUML (optional, off by default)
 
@@ -510,7 +516,8 @@ Flowchart and sequence confirmed in OneNote on 2026-09-14; the rest share the sa
 
 ### Phase 5 — Additional formats and polish
 
-- [ ] Graphviz, Vega-Lite, Chart.js, KaTeX through the same shell
+- [x] Graphviz and KaTeX through the same shell (2026-09-22; `$$` blocks and ` ```math `)
+- [ ] Vega-Lite, Chart.js
 - [x] Multi-file import with progress and summary — any number of files, a modeless progress
       window with Cancel on its own thread (`ProgressWindow`), and a summary at the end
 - [x] Import on its own thread (`ImportHost`, DESIGN.md §4) — the ribbon callback returns at

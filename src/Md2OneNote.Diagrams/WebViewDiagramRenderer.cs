@@ -13,7 +13,8 @@ using Microsoft.Web.WebView2.WinForms;
 namespace Md2OneNote.Diagrams
 {
     /// <summary>
-    /// Renders Mermaid diagrams to PNG in a hidden WebView2 (IMPLEMENTATION.md §8.2, DESIGN.md §8).
+    /// Renders diagrams and formulas (<see cref="Languages"/>) to PNG in a hidden WebView2
+    /// (IMPLEMENTATION.md §8.2, DESIGN.md §8).
     /// </summary>
     /// <remarks>
     /// <b>Everything WebView2 happens on one dedicated STA thread with its own message loop.</b>
@@ -30,7 +31,13 @@ namespace Md2OneNote.Diagrams
     /// </remarks>
     public sealed class WebViewDiagramRenderer : IDiagramRenderer, IDisposable
     {
-        private const string Language = "mermaid";
+        /// <summary>
+        /// The fence languages the shell renders: Mermaid, Graphviz (<c>dot</c> or
+        /// <c>graphviz</c>) and KaTeX (<c>math</c> or <c>katex</c>; a <c>$$</c> block is
+        /// <c>math</c> too). The shell's <c>renderDiagram</c> switches on the same names.
+        /// </summary>
+        public static readonly string[] Languages = { "mermaid", "dot", "graphviz", "math", "katex" };
+
         private const double CaptureScale = 2.0;
         private const int MaxCaptureEdgePx = 4096;
 
@@ -82,7 +89,7 @@ namespace Md2OneNote.Diagrams
         {
             return !_disposed
                 && !_health.Degraded
-                && string.Equals(language, Language, StringComparison.OrdinalIgnoreCase);
+                && Array.FindIndex(Languages, l => string.Equals(l, language, StringComparison.OrdinalIgnoreCase)) >= 0;
         }
 
         public async Task<DiagramOutcome> RenderAsync(DiagramRequest request, CancellationToken ct)

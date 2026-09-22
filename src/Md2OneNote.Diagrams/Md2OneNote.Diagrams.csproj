@@ -17,13 +17,27 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The shell and the Mermaid bundle (MIT, Assets/mermaid.LICENSE) are embedded and
-         extracted next to the user data folder at first use. NavigateToString caps at 2 MB and
-         the bundle is 5.5 MB, so the shell is served from a folder mapping instead. -->
+    <!-- The shell and its libraries are embedded and extracted under %LOCALAPPDATA% at first
+         use (ShellFiles). NavigateToString caps at 2 MB and Mermaid alone is 5.5 MB, so the
+         shell is served from a folder mapping instead. Every embedded file except the version
+         stamps is extracted; the logical name is the path the shell loads it from.
+           mermaid.min.js   Mermaid (MIT, Assets/mermaid.LICENSE)
+           viz-global.js    Viz.js with Graphviz as WebAssembly (MIT + EPL-1.0, viz.LICENSE,
+                            graphviz.LICENSE)
+           katex.min.*      KaTeX and its fonts (MIT, katex.LICENSE) -->
     <EmbeddedResource Include="Assets\shell.html" LogicalName="shell.html" />
     <EmbeddedResource Include="Assets\mermaid.min.js" LogicalName="mermaid.min.js" />
     <EmbeddedResource Include="Assets\mermaid.version.txt" LogicalName="mermaid.version.txt" />
+    <EmbeddedResource Include="Assets\viz-global.js" LogicalName="viz-global.js" />
+    <EmbeddedResource Include="Assets\viz.version.txt" LogicalName="viz.version.txt" />
+    <EmbeddedResource Include="Assets\katex.min.js" LogicalName="katex.min.js" />
+    <EmbeddedResource Include="Assets\katex.min.css" LogicalName="katex.min.css" />
+    <EmbeddedResource Include="Assets\katex.version.txt" LogicalName="katex.version.txt" />
+    <EmbeddedResource Include="Assets\fonts\*.woff2" LogicalName="fonts/%(Filename)%(Extension)" />
     <None Include="Assets\mermaid.LICENSE" />
+    <None Include="Assets\viz.LICENSE" />
+    <None Include="Assets\graphviz.LICENSE" />
+    <None Include="Assets\katex.LICENSE" />
   </ItemGroup>
 
   <ItemGroup>

@@ -50,9 +50,9 @@ namespace Md2OneNote.AddIn
             var strings = FallbackStringCatalog.Instance;
 
             // The diagram renderer lives for one import (DESIGN.md §8.1) and only exists when the
-            // WebView2 runtime does (§8.4). Without it, "mermaid" is not a diagram language at
-            // all as far as the parser is concerned, so every fence stays a code block and the
-            // report says why.
+            // WebView2 runtime does (§8.4). Without it, no fence language is a diagram language
+            // at all as far as the parser is concerned, so every fence (and every $$ block)
+            // stays a code block and the report says why.
             var renderers = new List<IDiagramRenderer>();
             var languages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             WebViewDiagramRenderer browser = null;
@@ -63,7 +63,7 @@ namespace Md2OneNote.AddIn
             {
                 browser = new WebViewDiagramRenderer();
                 renderers.Add(browser);
-                languages.Add("mermaid");
+                languages.UnionWith(WebViewDiagramRenderer.Languages);
                 log.Info("Diagram rendering via WebView2 runtime " + runtime);
             }
             else

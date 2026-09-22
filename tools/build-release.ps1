@@ -86,7 +86,9 @@ function Invoke-Build {
     Copy-Item (Join-Path $PSScriptRoot 'register.ps1') -Destination $payload
     Copy-Item (Join-Path $root 'LICENSE') -Destination $payload
     Copy-Item (Join-Path $root 'THIRD-PARTY-NOTICES.md') -Destination $payload
-    Copy-Item (Join-Path $root 'src\Md2OneNote.Diagrams\Assets\mermaid.LICENSE') -Destination $payload
+    foreach ($licence in 'mermaid.LICENSE', 'viz.LICENSE', 'graphviz.LICENSE', 'katex.LICENSE') {
+        Copy-Item (Join-Path $root "src\Md2OneNote.Diagrams\Assets\$licence") -Destination $payload
+    }
 
     Set-Content -Path (Join-Path $artifacts 'version.txt') -Value $version -Encoding ascii -NoNewline
 

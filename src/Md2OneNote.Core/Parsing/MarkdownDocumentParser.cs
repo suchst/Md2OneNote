@@ -5,6 +5,7 @@ using System.Text;
 using Markdig;
 using Markdig.Extensions.EmphasisExtras;
 using Markdig.Extensions.Footnotes;
+using Markdig.Extensions.Mathematics;
 using Markdig.Extensions.TaskLists;
 using Markdig.Extensions.Yaml;
 using Md = Markdig.Syntax;
@@ -65,14 +66,19 @@ namespace Md2OneNote.Core.Parsing
         /// </summary>
         private static MarkdownPipeline BuildPipeline()
         {
-            return new MarkdownPipelineBuilder()
+            var builder = new MarkdownPipelineBuilder()
                 .UsePipeTables()
                 .UseTaskLists()
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                 .UseAutoLinks()
                 .UseFootnotes()
-                .UseYamlFrontMatter()
-                .Build();
+                .UseYamlFrontMatter();
+
+            // $$ blocks become "math" diagrams (FR-12). Only the block parser: inline $…$ stays
+            // literal text, because OneNote cannot place a picture inside a line of text.
+            builder.BlockParsers.AddIfNotAlready(new MathBlockParser());
+
+            return builder.Build();
         }
 
         /// <summary>
@@ -117,6 +123,9 @@ namespace Md2OneNote.Core.Parsing
         /// (NFR-8, NFR-2). Sixty-four is far past anything a person writes.
         /// </summary>
         private const int MaxNestingDepth = 64;
+
+        /// <summary>The fence language a <c>$$</c> block stands for; the same as a <c>```math</c> fence.</summary>
+        private const string MathLanguage = "math";
 
         private readonly ParseOptions _options;
         private readonly IStringCatalog _strings;
@@ -220,10 +229,20 @@ namespace Md2OneNote.Core.Parsing
                 return;
             }
 
+            // A $$ block is a math fence in all but syntax. It derives from FencedCodeBlock and
+            // has no info string, so it is tested first or it would become a code block with no
+            // language.
+            var math = block as MathBlock;
+            if (math != null)
+            {
+                output.Add(ConvertFence(MathLanguage, LinesOf(math)));
+                return;
+            }
+
             var fenced = block as Md.FencedCodeBlock;
             if (fenced != null)
             {
-                output.Add(ConvertFence(fenced));
+                output.Add(ConvertFence(FirstWord(fenced.Info), LinesOf(fenced)));
                 return;
             }
 
@@ -457,11 +476,8 @@ namespace Md2OneNote.Core.Parsing
             content[0] = new ParagraphBlock(inlines);
         }
 
-        private IBlock ConvertFence(Md.FencedCodeBlock fence)
+        private IBlock ConvertFence(string language, string source)
         {
-            var language = FirstWord(fence.Info);
-            var source = LinesOf(fence);
-
             if (language.Length > 0 && _options.DiagramLanguages.Contains(language))
             {
                 var request = DiagramRequest.Create(language, source);

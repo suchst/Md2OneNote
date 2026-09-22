@@ -92,6 +92,53 @@ namespace Md2OneNote.Core.Tests
         }
 
         [Fact]
+        public void A_dollar_block_is_a_math_diagram_request_when_math_is_registered()
+        {
+            var parsed = Convert.Parse("Before.\n\n$$\nE = mc^2\n$$\n\nAfter.", "math");
+
+            var request = Assert.Single(parsed.Diagrams);
+            Assert.Equal("math", request.Language);
+            Assert.Equal("E = mc^2", request.Source.TrimEnd('\n'));
+
+            Assert.Equal(3, parsed.Body.Blocks.Count);
+            var block = Assert.IsType<DiagramBlock>(parsed.Body.Blocks[1]);
+            Assert.Equal(request.Key, block.Key);
+        }
+
+        [Fact]
+        public void A_math_fence_and_a_dollar_block_with_the_same_formula_are_one_request()
+        {
+            var parsed = Convert.Parse("```math\nE = mc^2\n```\n\n$$\nE = mc^2\n$$", "math");
+
+            Assert.Single(parsed.Diagrams);
+            Assert.Equal(2, parsed.Body.Blocks.OfType<DiagramBlock>().Count());
+        }
+
+        [Fact]
+        public void A_dollar_block_is_a_math_code_block_when_nothing_renders_math()
+        {
+            var parsed = Convert.Parse("$$\nE = mc^2\n$$", "mermaid");
+
+            Assert.Empty(parsed.Diagrams);
+            var code = Assert.IsType<CodeBlock>(parsed.Body.Blocks[0]);
+            Assert.Equal("math", code.Language);
+            Assert.Equal("E = mc^2", code.Code.TrimEnd('\n'));
+        }
+
+        [Fact]
+        public void Inline_dollars_stay_text()
+        {
+            // OneNote cannot put a picture inside a line, so $…$ is not math here: the text is
+            // kept exactly, dollars included.
+            var parsed = Convert.Parse("Costs $5, and $x^2$ stays as typed.", "math");
+
+            Assert.Empty(parsed.Diagrams);
+            var paragraph = Assert.IsType<ParagraphBlock>(parsed.Body.Blocks[0]);
+            var run = Assert.IsType<TextRun>(Assert.Single(paragraph.Content));
+            Assert.Equal("Costs $5, and $x^2$ stays as typed.", run.Text);
+        }
+
+        [Fact]
         public void Image_paths_reach_the_request_exactly_as_written()
         {
             var parsed = Convert.Parse("![A diagram](../shared/img.png)");

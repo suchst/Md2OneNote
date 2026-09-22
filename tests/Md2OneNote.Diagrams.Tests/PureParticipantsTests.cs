@@ -160,3 +160,81 @@ namespace Md2OneNote.Diagrams.Tests
         }
     }
 }
+
+namespace Md2OneNote.Diagrams.Tests
+{
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+
+    /// <summary>
+    /// The shell is only as complete as the assembly's embedded resources: a library or a font
+    /// left out of the project file would surface as a blank picture in OneNote, not as a build
+    /// error.
+    /// </summary>
+    public class ShellFilesTests
+    {
+        [Fact]
+        public void Every_file_the_shell_loads_is_embedded()
+        {
+            var names = ShellFiles.Names;
+
+            foreach (var required in new[] { "shell.html", "mermaid.min.js", "viz-global.js", "katex.min.js", "katex.min.css" })
+            {
+                Assert.Contains(required, names);
+            }
+
+            Assert.DoesNotContain(names, n => n.EndsWith(".version.txt", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void Every_font_the_KaTeX_stylesheet_names_is_embedded_as_woff2()
+        {
+            var names = ShellFiles.Names;
+            string css;
+            using (var reader = new StreamReader(typeof(ShellFiles).Assembly.GetManifestResourceStream("katex.min.css")))
+            {
+                css = reader.ReadToEnd();
+            }
+
+            var fonts = Regex.Matches(css, @"url\((fonts/[^)]+\.woff2)\)").Cast<Match>().Select(m => m.Groups[1].Value).Distinct().ToList();
+
+            Assert.NotEmpty(fonts);
+            foreach (var font in fonts)
+            {
+                Assert.Contains(font, names);
+            }
+
+            Assert.Equal(fonts.Count, names.Count(n => n.StartsWith("fonts/", StringComparison.Ordinal)));
+        }
+
+        [Fact]
+        public void The_shell_references_only_embedded_scripts_and_stylesheets()
+        {
+            var names = ShellFiles.Names;
+            string html;
+            using (var reader = new StreamReader(typeof(ShellFiles).Assembly.GetManifestResourceStream("shell.html")))
+            {
+                html = reader.ReadToEnd();
+            }
+
+            var references = Regex.Matches(html, @"(?:src|href)=""([^""]+)""").Cast<Match>().Select(m => m.Groups[1].Value).ToList();
+
+            Assert.NotEmpty(references);
+            foreach (var reference in references)
+            {
+                Assert.Contains(reference, names);
+            }
+        }
+
+        [Theory]
+        [InlineData("mermaid", "12.0.0")]
+        [InlineData("viz", "3.30.0")]
+        [InlineData("katex", "0.18.7")]
+        public void Library_versions_are_stamped(string library, string version)
+        {
+            Assert.Equal(version, ShellFiles.LibraryVersion(typeof(ShellFiles).Assembly, library));
+        }
+    }
+}

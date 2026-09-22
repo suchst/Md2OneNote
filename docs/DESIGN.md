@@ -486,12 +486,22 @@ therefore a duplicate page, never a lost one.
 
 One `WebView2`, created lazily on the host thread, reused across diagrams within an import.
 
-- Shell is a single self-contained HTML document with all libraries inlined as embedded resources.
+- The shell is one HTML document plus its libraries: Mermaid, Viz.js (Graphviz as WebAssembly,
+  embedded in the script as a string, so nothing is fetched) and KaTeX with its fonts. All are
+  embedded resources of the Diagrams assembly, extracted once per content hash and served through
+  a virtual host mapping (`NavigateToString` caps at 2 MB).
 - JS entry point: `renderDiagram(lang, source, id)` → `{"ok":true,"w":720,"h":410}` or
-  `{"ok":false,"error":"…"}`.
+  `{"ok":false,"error":"…"}`. `lang` is one of `WebViewDiagramRenderer.Languages`: `mermaid`;
+  `dot` and `graphviz` (Viz.js `renderSVGElement`, dot engine, the WASM instance made on first
+  use and kept for the import); `math` and `katex` (KaTeX `displayMode`, `throwOnError`, trust
+  off, so `\url` and `\includegraphics` are refused). A `$$` block parses as `math`.
 - Each render resets container state, so no diagram can observe or corrupt a previous one (NFR-6).
-- The shell reports the SVG's natural size from its `viewBox` and pins the SVG to it (Mermaid
-  emits `width="100%"`, so the rendered box is the viewport's, not the drawing's).
+- The shell reports an SVG's natural size and pins the SVG to it: the absolute `width` and
+  `height` attributes when there are any (Graphviz writes them in points and the DOM converts to
+  CSS pixels, so the picture lands life size), otherwise the `viewBox` (Mermaid emits
+  `width="100%"`, so the rendered box is the viewport's, not the drawing's). KaTeX output is
+  HTML; its box is measured after `document.fonts.ready`, because the fonts load on first use
+  and a box measured before that has the fallback font's metrics.
 - Capture at 2× through the DevTools protocol: `Emulation.setDeviceMetricsOverride` to the
   diagram's size with `deviceScaleFactor` 2, then `Page.captureScreenshot` with a clip of that
   size. The host window stays 800×600 and never has to match the diagram — it cannot: Windows
@@ -533,7 +543,10 @@ of the import and stops paying the recreation cost — the import still complete
 
 Two independent layers, because either alone can be defeated by a mistake in the other (NFR-5):
 
-1. A CSP in the shell: `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:`.
+1. A CSP in the shell: `default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';
+   style-src 'self' 'unsafe-inline'; img-src data:; font-src 'self'; connect-src 'none'`. `'self'`
+   is the shell's own virtual host; `'wasm-unsafe-eval'` lets the Graphviz module instantiate and
+   leaves `eval` blocked.
 2. A `WebResourceRequested` handler registered for `*` that fails every request not served from the
    embedded shell.
 
@@ -691,10 +704,11 @@ are in `docs/page-schema-notes.md`:
 ## 16. Status
 
 Phases 0–4 of `IMPLEMENTATION.md` §11 are built and in daily use on the author's machine:
-single- and multi-file import, re-import with `one:Meta` matching, Mermaid through WebView2.
-What this design describes and the code does not yet have:
+single- and multi-file import, re-import with `one:Meta` matching, Mermaid, Graphviz and KaTeX
+through WebView2. What this design describes and the code does not yet have:
 
-1. The additional diagram formats of §8.4.
+1. Vega-Lite and Chart.js, the remaining formats of REQUIREMENTS.md FR-12 (Graphviz and KaTeX
+   were built 2026-09-22).
 2. Code signing of the installer and binaries (REQUIREMENTS.md NFR-13). The release workflow
    has the SignPath steps (`docs/RELEASING.md`, "Signing"); they run once SignPath Foundation
    has approved the project. Until then releases are previews.

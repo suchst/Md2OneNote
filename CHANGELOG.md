@@ -6,6 +6,12 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Graphviz diagrams (` ```dot ` or ` ```graphviz ` fences) and formulas (` ```math ` fences and
+  `$$` blocks, set with KaTeX) import as pictures the way Mermaid diagrams do: offline, at 2x,
+  with the source kept as code and the reason shown when rendering fails. Inline `$…$` stays
+  text.
+
 ### Changed
 - The release workflow signs the add-in's assemblies and the installer through SignPath when
   the repository holds SignPath credentials, and publishes unsigned otherwise, saying so in the

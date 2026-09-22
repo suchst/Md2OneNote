@@ -34,7 +34,7 @@ namespace Md2OneNote.Core.Tests
         public void Sample_matches_its_golden_page(string name)
         {
             var markdown = File.ReadAllText(Path.Combine(Directory("Samples"), name + ".md"));
-            var parsed = Convert.Parse(markdown, "mermaid", "dot");
+            var parsed = Convert.Parse(markdown, "mermaid", "dot", "math");
 
             var diagrams = new Dictionary<string, DiagramOutcome>();
             for (var i = 0; i < parsed.Diagrams.Count; i++)

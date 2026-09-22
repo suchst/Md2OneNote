@@ -90,6 +90,50 @@
         <one:T><![CDATA[diagram render failed]]></one:T>
       </one:OE>
       <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[A formula in a math fence, and the same formula as a dollar block, which is requested once:]]></one:T>
+      </one:OE>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[\int_0^1 x^2 \, dx = \frac{1}{3}]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
+      <one:OE quickStyleIndex="10">
+        <one:T><![CDATA[diagram render failed]]></one:T>
+      </one:OE>
+      <one:OE>
+        <one:Table bordersVisible="false">
+          <one:Columns>
+            <one:Column index="0" width="660" />
+          </one:Columns>
+          <one:Row>
+            <one:Cell shadingColor="#F2F2F2">
+              <one:OEChildren>
+                <one:OE quickStyleIndex="9">
+                  <one:T><![CDATA[\int_0^1 x^2 \, dx = \frac{1}{3}]]></one:T>
+                </one:OE>
+              </one:OEChildren>
+            </one:Cell>
+          </one:Row>
+        </one:Table>
+      </one:OE>
+      <one:OE quickStyleIndex="10">
+        <one:T><![CDATA[diagram render failed]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="7">
+        <one:T><![CDATA[Inline dollars are text, not math: it costs $5 and $x^2$ stays as typed.]]></one:T>
+      </one:OE>
+      <one:OE quickStyleIndex="7">
         <one:T><![CDATA[A fence whose language has no renderer at all falls back to code:]]></one:T>
       </one:OE>
       <one:OE>

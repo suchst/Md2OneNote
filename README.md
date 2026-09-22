@@ -21,8 +21,10 @@ crisp pictures. Everything happens on your machine; the add-in never touches the
 - **Code blocks** are shaded, keep their indentation, and are syntax-highlighted.
 - **Images** referenced by a relative path (`![](img/diagram.png)`) are embedded at life size and
   scaled down to fit the page width.
-- **Mermaid diagrams** (` ```mermaid ` fences) are rendered offline at 2x resolution and placed as
-  pictures. A diagram that does not render stays in the page as code, with the reason underneath.
+- **Diagrams and formulas** are rendered offline at 2x resolution and placed as pictures:
+  Mermaid (` ```mermaid `), Graphviz (` ```dot ` or ` ```graphviz `) and math set with KaTeX
+  (` ```math ` or a `$$` block). One that does not render stays in the page as code, with the
+  reason underneath. Inline `$x$` stays text; OneNote cannot put a picture inside a line.
 - **Re-import is safe.** A page the add-in created is never overwritten. Importing a file again
   is skipped when the file has not changed, and creates a second, dated page when it has. One
   click lets you import an unchanged file again anyway.
@@ -38,7 +40,7 @@ create, or run from the command line. The reasoning is in [docs/REQUIREMENTS.md]
 | Windows | 10 or 11 |
 | OneNote | OneNote for Windows (the desktop app: Microsoft 365, or 2016 and later). Not "OneNote for Windows 10" from the Store, and not the web app. |
 | .NET Framework 4.8 | Included in Windows 10 since version 1903 and in every Windows 11. |
-| WebView2 Runtime | Needed only for diagrams. Included in Windows 11 and most Windows 10 installs. Without it the import still works and diagrams appear as code. |
+| WebView2 Runtime | Needed only for diagrams and formulas. Included in Windows 11 and most Windows 10 installs. Without it the import still works and they appear as code. |
 
 The add-in installs per user and needs no administrator rights.
 
