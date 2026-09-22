@@ -7,7 +7,7 @@
     <!-- The one place the product version lives. The release workflow refuses a tag that does
          not match it (docs/RELEASING.md). A pre-release suffix is fine: AssemblyVersion and
          FileVersion take the numeric part, InformationalVersion keeps the whole string. -->
-    <Version>1.0.0-preview.2</Version>
+    <Version>1.0.0-preview.3</Version>
 
     <Product>Md2OneNote</Product>
     <Authors>Stanislav Sucharda</Authors>

@@ -6,10 +6,15 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-preview.3] - 2026-09-22
+
+Still unsigned: Windows SmartScreen will warn when the installer runs.
+
 ### Changed
 - OneNote stays usable during an import. The import runs on its own thread; the ribbon button
   returns at once, and the progress window is the only thing that waits. A second Import while
-  one is running is refused with a message rather than queued.
+  one is running is refused with a message rather than queued. Closing OneNote during an import
+  stops it after the current file; the pages already made are kept.
 - A busy OneNote (a dialog open there during an import) is retried for about ten seconds
   before the file is reported as failed, instead of one second.
 
@@ -44,6 +49,7 @@ First public preview. Not code-signed yet: Windows SmartScreen will warn when th
   a diagnostic bundle.
 - Per-user install and uninstall without administrator rights.
 
-[Unreleased]: https://github.com/suchst/Md2OneNote/compare/v1.0.0-preview.2...HEAD
+[Unreleased]: https://github.com/suchst/Md2OneNote/compare/v1.0.0-preview.3...HEAD
+[1.0.0-preview.3]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.3
 [1.0.0-preview.2]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.2
 [1.0.0-preview.1]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.1
