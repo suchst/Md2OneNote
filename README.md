@@ -92,8 +92,14 @@ log and cache folder too.
 ## Troubleshooting
 
 - **The Markdown group is missing.** OneNote disables an add-in that failed during startup and
-  does not try again. Close OneNote and run `.\tools\register.ps1 -Install` once more; it clears
-  the disabled flag. If it keeps happening, open an issue with `log.txt` attached.
+  does not try again. Close OneNote and run the installer once more; it clears the disabled flag.
+  From a source checkout, `.\tools\register.ps1 -Install` does the same. If it keeps happening,
+  open an issue with `log.txt` attached.
+- **OneNote keeps running after you close it**, or says it is "cleaning up from the last time it
+  was open" when you start it again. That is OneNote finishing its own sync; it happens with or
+  without the add-in, and more after large imports. The add-in has already left by then: the last
+  line in `log.txt` reads `Disconnected`, and an import that was still running was stopped after
+  its current file, with the pages already made kept.
 - **Diagrams come out as code.** The summary says why: either the WebView2 runtime is missing
   (install it from Microsoft, then import again) or the diagram itself has an error, which the
   text under the code block names.
