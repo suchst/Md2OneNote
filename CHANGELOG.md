@@ -6,6 +6,10 @@ All notable changes to Md2OneNote are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-preview.4] - 2026-09-22
+
+Still unsigned: Windows SmartScreen will warn when the installer runs.
+
 ### Added
 - Graphviz diagrams (` ```dot ` or ` ```graphviz ` fences) and formulas (` ```math ` fences and
   `$$` blocks, set with KaTeX) import as pictures the way Mermaid diagrams do: offline, at 2x,
@@ -60,7 +64,8 @@ First public preview. Not code-signed yet: Windows SmartScreen will warn when th
   a diagnostic bundle.
 - Per-user install and uninstall without administrator rights.
 
-[Unreleased]: https://github.com/suchst/Md2OneNote/compare/v1.0.0-preview.3...HEAD
+[Unreleased]: https://github.com/suchst/Md2OneNote/compare/v1.0.0-preview.4...HEAD
+[1.0.0-preview.4]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.4
 [1.0.0-preview.3]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.3
 [1.0.0-preview.2]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.2
 [1.0.0-preview.1]: https://github.com/suchst/Md2OneNote/releases/tag/v1.0.0-preview.1
